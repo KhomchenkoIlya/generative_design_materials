@@ -1,0 +1,1998 @@
+% HiddenPower — итерация 7, итоговая версия.
+% Глава: «Механика сплошной среды и физические модели конструкции».
+% Источники: E. Kuhl; L. Chen (линейная упругость, вариационная и FEM-постановки).
+
+\chapter{Механика сплошной среды и физические модели конструкции}
+\label{chap:continuum-mechanics}
+
+В главе~\ref{chap:partial-differential-equations} построена общая цепочка
+\[
+\text{параметры конструкции}
+\longrightarrow
+\text{PDE}
+\longrightarrow
+\text{поле отклика}
+\longrightarrow
+\text{функционал и градиент}.
+\]
+Теперь эта схема получает конкретное физическое содержание. Конструкция рассматривается как сплошное тело: каждой её материальной точке приписываются перемещение, деформация и, позднее, напряжение. Атомное строение не моделируется явно; вместо него используются поля, меняющиеся по пространству.
+
+Сквозной объект главы --- закреплённая пластина или кронштейн под нагрузкой. Геометрия задаёт область тела, закрепление исключает свободное движение как целого, а нагрузка вызывает поле перемещений. Из этого поля вычисляется изменение длин, углов и объёма. Только после такой кинематической части можно вводить силы, материал и критерии прочности.
+
+\section{Конфигурация тела, перемещение и деформация}
+\label{sec:continuum-kinematics}
+
+\subsection{Материальное тело и отсчётная конфигурация}
+
+Пусть
+\[
+D\subset\R^d,
+\qquad d\in\{2,3\},
+\]
+--- область, занимаемая телом в выбранном исходном состоянии. Точку этой области обозначаем $X$. Она является материальной меткой: при деформации меняется положение частицы, но не её имя $X$.
+
+Такое описание опирается на гипотезу сплошной среды. Поля определяются в каждой точке $X$, хотя реальный материал состоит из дискретных частиц. Модель применима, когда характерный размер конструкции и масштаб изменения полей значительно больше микроструктурного масштаба. Для решётки, отдельного зерна или трещины атомного размера эта гипотеза может быть недостаточной.
+
+\begin{definition}
+Отсчётной конфигурацией называется выбранное размещение тела, отождествлённое с областью $D$. Текущая конфигурация задаётся отображением
+\begin{equation}
+\label{eq:placement-v01}
+\varphi:D\to\R^d,
+\qquad
+X\longmapsto x=\varphi(X),
+\end{equation}
+которое переводит материальную точку $X$ в её новое пространственное положение $x$.
+\end{definition}
+
+Для статической задачи время не входит в запись. При движении используется $\varphi(X,t)$, но в этой главе основное внимание уделяется равновесной деформации после приложения нагрузки.
+
+Чтобы одно и то же место текущей конфигурации не принадлежало двум различным частицам, отображение $\varphi$ должно быть взаимно однозначным хотя бы на рассматриваемом диапазоне деформаций. Локально требуется невырожденность производной. Для сохранения ориентации принимается
+\begin{equation}
+\label{eq:positive-jacobian-v01}
+\det \nabla_X\varphi(X)>0.
+\end{equation}
+Условие~\eqref{eq:positive-jacobian-v01} запрещает схлопывание и выворачивание малых объёмов. В численной модели его нарушение обычно означает инвертированный элемент сетки, а не допустимую конструкцию.
+
+\subsection{Размещение, перемещение и жёсткое движение}
+
+Поле перемещений определяется разностью текущего и исходного положений:
+\begin{equation}
+\label{eq:displacement-v01}
+u(X)=\varphi(X)-X,
+\qquad
+\varphi(X)=X+u(X).
+\end{equation}
+Оно отвечает на вопрос, куда переместилась каждая материальная точка. Однако ненулевое перемещение ещё не означает изменения формы.
+
+Рассмотрим жёсткое движение
+\begin{equation}
+\label{eq:rigid-placement-v01}
+\varphi(X)=c+QX,
+\qquad
+Q^{\trans}Q=I,
+\qquad
+\det Q=1,
+\end{equation}
+где $c\in\R^d$ --- перенос, а $Q$ --- поворот. Тогда
+\[
+u(X)=c+(Q-I)X
+\]
+обычно не равно нулю, хотя расстояния и углы сохраняются. Поэтому физическая мера деформации должна обнуляться на любом движении вида~\eqref{eq:rigid-placement-v01}.
+
+Для закреплённой пластины это различие имеет практический смысл. Если закрепление не исключает перенос или вращение всего тела, у статической задачи возникают свободные жёсткие моды. Матрица жёсткости становится вырожденной, и решатель не может отделить деформацию от движения конструкции как целого. Это будет формализовано в разделе о слабой постановке.
+
+\begin{connection}[с дифференциальной геометрией]
+Отображение $\varphi$ и его дифференциал имеют тот же смысл, что и гладкое отображение и касательное отображение из главы~\ref{chap:manifolds-differential-geometry}. Здесь дифференциал действует не на абстрактный касательный вектор, а на малый материальный отрезок. Тензор деформации ниже сравнивает евклидову метрику до и после этого отображения.
+\end{connection}
+
+\subsection{Градиент деформации и локальное изменение отрезка}
+
+Пусть две близкие материальные точки имеют координаты $X$ и $X+dX$. После деформации соединяющий их вектор равен
+\[
+dx
+=
+\varphi(X+dX)-\varphi(X)
+=
+\nabla_X\varphi(X)dX+o(\lVert dX\rVert).
+\]
+Главный линейный член задаётся матрицей
+\begin{equation}
+\label{eq:deformation-gradient-v01}
+F(X)=\nabla_X\varphi(X)=I+\nabla_Xu(X),
+\end{equation}
+которая называется градиентом деформации.
+
+Матрица $F$ содержит локальное растяжение, сдвиг и вращение. Она переводит малый исходный отрезок $dX$ в приближённый текущий отрезок
+\begin{equation}
+\label{eq:line-element-map-v01}
+dx\approx F(X)dX.
+\end{equation}
+Её определитель
+\begin{equation}
+\label{eq:jacobian-volume-v01}
+J(X)=\det F(X)
+\end{equation}
+задаёт локальное изменение объёма:
+\[
+dv=J(X)dV.
+\]
+При $J>1$ малый объём увеличивается, при $0<J<1$ уменьшается, а $J=1$ соответствует локальному сохранению объёма.
+
+Сам $F$ не является чистой мерой деформации. Для жёсткого поворота $F=Q\neq I$, хотя форма не меняется. Нужно исключить вращение и сравнить квадраты длин:
+\begin{align}
+\lVert dx\rVert^2
+&\approx
+(FdX)^{\trans}(FdX)
+=dX^{\trans}F^{\trans}F\,dX,\label{eq:deformed-length-v01}\\
+\lVert dX\rVert^2
+&=dX^{\trans}I\,dX.\label{eq:reference-length-v01}
+\end{align}
+Поэтому локальное изменение метрики определяется симметричной матрицей $F^{\trans}F-I$.
+
+\subsection{Конечная и инфинитезимальная деформация}
+
+\begin{definition}
+Правым тензором Коши--Грина называется
+\begin{equation}
+\label{eq:right-cauchy-green-v01}
+C=F^{\trans}F.
+\end{equation}
+Тензором деформации Грина--Сен-Венана называется
+\begin{equation}
+\label{eq:green-strain-v01}
+E=\frac12(C-I)
+=\frac12\bigl(F^{\trans}F-I\bigr).
+\end{equation}
+\end{definition}
+
+Из формул~\eqref{eq:deformed-length-v01}--\eqref{eq:green-strain-v01} следует точное соотношение первого порядка по размеру отрезка:
+\begin{equation}
+\label{eq:length-change-green-v01}
+\lVert dx\rVert^2-\lVert dX\rVert^2
+\approx
+2dX^{\trans}E(X)dX.
+\end{equation}
+Если $\varphi(X)=c+QX$, то $F=Q$ и $E=0$. Следовательно, $E$ корректно отбрасывает любое конечное жёсткое вращение.
+
+Подставляя $F=I+\nabla u$, получаем
+\begin{equation}
+\label{eq:green-strain-expanded-v01}
+E(u)
+=
+\frac12\left(
+\nabla u+\nabla u^{\trans}+\nabla u^{\trans}\nabla u
+\right).
+\end{equation}
+При малом градиенте перемещения квадратичный член можно отбросить.
+
+\begin{definition}
+Тензором малой, или инфинитезимальной, деформации называется симметричная часть градиента перемещения:
+\begin{equation}
+\label{eq:small-strain-v01}
+\varepsilon(u)
+=
+\operatorname{sym}\nabla u
+=
+\frac12\left(\nabla u+\nabla u^{\trans}\right).
+\end{equation}
+\end{definition}
+
+Антисимметричная часть
+\begin{equation}
+\label{eq:infinitesimal-rotation-v01}
+\omega(u)
+=
+\operatorname{skw}\nabla u
+=
+\frac12\left(\nabla u-\nabla u^{\trans}\right)
+\end{equation}
+описывает локальное инфинитезимальное вращение. Разложение
+\[
+\nabla u=\varepsilon(u)+\omega(u)
+\]
+отделяет изменение формы в линейном приближении от локального поворота.
+
+След матрицы малой деформации равен дивергенции:
+\begin{equation}
+\label{eq:trace-strain-divergence-v01}
+\operatorname{tr}\varepsilon(u)=\nabla\cdot u.
+\end{equation}
+Более того,
+\begin{equation}
+\label{eq:jacobian-linearization-v01}
+J
+=
+\det(I+\nabla u)
+=
+1+\nabla\cdot u+O(\lVert\nabla u\rVert^2).
+\end{equation}
+Поэтому $\operatorname{tr}\varepsilon$ является линейным приближением относительного изменения объёма.
+
+В размерности $d$ тензор удобно разложить на объёмную и девиаторную части:
+\begin{align}
+\varepsilon_{\mathrm{vol}}
+&=
+\frac1d\operatorname{tr}(\varepsilon)I,
+\label{eq:volumetric-strain-v01}\\
+\varepsilon_{\mathrm{dev}}
+&=
+\varepsilon-\varepsilon_{\mathrm{vol}},
+\qquad
+\operatorname{tr}(\varepsilon_{\mathrm{dev}})=0.
+\label{eq:deviatoric-strain-v01}
+\end{align}
+Первая часть меняет объём без выделенного направления, вторая меняет форму без линейного изменения объёма. В трёхмерном случае в формуле~\eqref{eq:volumetric-strain-v01} стоит множитель $1/3$, в двумерном расчёте --- $1/2$.
+
+\subsection{Законченный расчёт тензора малой деформации}
+\label{subsec:strain-computation-v01}
+
+Рассмотрим двумерное поле перемещений
+\begin{equation}
+\label{eq:worked-displacement-v01}
+u(X_1,X_2)
+=
+\begin{pmatrix}
+0.01X_1+0.02X_2\\
+-0.004X_2
+\end{pmatrix}.
+\end{equation}
+Коэффициенты безразмерны: первая компонента содержит растяжение вдоль $X_1$ и простой сдвиг, вторая --- слабое сжатие вдоль $X_2$.
+
+Градиент перемещения постоянен:
+\begin{equation}
+\label{eq:worked-gradient-v01}
+\nabla u
+=
+\begin{pmatrix}
+0.01 & 0.02\\
+0 & -0.004
+\end{pmatrix}.
+\end{equation}
+Его симметричная и антисимметричная части равны
+\begin{align}
+\varepsilon(u)
+&=
+\frac12(\nabla u+\nabla u^{\trans})
+=
+\begin{pmatrix}
+0.01 & 0.01\\
+0.01 & -0.004
+\end{pmatrix},
+\label{eq:worked-small-strain-v01}\\
+\omega(u)
+&=
+\frac12(\nabla u-\nabla u^{\trans})
+=
+\begin{pmatrix}
+0 & 0.01\\
+-0.01 & 0
+\end{pmatrix}.
+\label{eq:worked-rotation-v01}
+\end{align}
+Следовательно, нормальная деформация вдоль первого направления равна $1\%$, вдоль второго --- $-0.4\%$. Компонента $\varepsilon_{12}=0.01$ соответствует инженерной сдвиговой деформации
+\[
+\gamma_{12}=2\varepsilon_{12}=0.02.
+\]
+
+След и двумерная объёмная часть имеют вид
+\begin{align}
+\operatorname{tr}\varepsilon
+&=0.01-0.004=0.006,\label{eq:worked-trace-v01}\\
+\varepsilon_{\mathrm{vol}}
+&=
+\frac12\operatorname{tr}(\varepsilon)I
+=
+\begin{pmatrix}
+0.003&0\\
+0&0.003
+\end{pmatrix}.
+\label{eq:worked-volumetric-v01}
+\end{align}
+Девиаторная часть равна
+\begin{equation}
+\label{eq:worked-deviatoric-v01}
+\varepsilon_{\mathrm{dev}}
+=
+\begin{pmatrix}
+0.007&0.01\\
+0.01&-0.007
+\end{pmatrix},
+\qquad
+\operatorname{tr}\varepsilon_{\mathrm{dev}}=0.
+\end{equation}
+
+Проверим точность линеаризации. Из~\eqref{eq:deformation-gradient-v01}
+\[
+F
+=
+\begin{pmatrix}
+1.01&0.02\\
+0&0.996
+\end{pmatrix},
+\qquad
+J=\det F=1.00596.
+\]
+Линейная формула~\eqref{eq:jacobian-linearization-v01} даёт
+\[
+1+\nabla\cdot u=1.006,
+\]
+то есть ошибка составляет $4\cdot10^{-5}$.
+
+Точный тензор Грина--Сен-Венана равен
+\begin{equation}
+\label{eq:worked-green-strain-v01}
+E
+=
+\frac12(F^{\trans}F-I)
+=
+\begin{pmatrix}
+0.01005&0.01010\\
+0.01010&-0.003792
+\end{pmatrix}.
+\end{equation}
+Разность $E-\varepsilon$ имеет порядок $10^{-4}$, тогда как сами деформации имеют порядок $10^{-2}$. Для этого поля линейная кинематика оправдана, но расчёт одновременно показывает, какой именно квадратичный член был отброшен.
+
+\subsection{Границы линейной кинематики и вычислительный контракт}
+
+Приближение $E\approx\varepsilon$ требует малости не самого перемещения $u$, а градиента $\nabla u$. Длинное тело может переместиться далеко как целое и почти не деформироваться. Напротив, небольшое по абсолютной величине, но быстро меняющееся перемещение может создавать значительную деформацию.
+
+Особенно опасны большие вращения. Для чистого поворота на конечный угол точный тензор $E$ равен нулю, но
+\[
+\varepsilon
+=
+\frac12(Q+Q^{\trans})-I
+\]
+вообще говоря, не равен нулю. Например, поворот плоскости на $90^\circ$ даёт $\varepsilon=-I$. Линейная модель ошибочно интерпретирует жёсткий поворот как сильное сжатие. Поэтому условие применимости формулируется как
+\begin{equation}
+\label{eq:small-gradient-condition-v01}
+\lVert\nabla u\rVert\ll1,
+\end{equation}
+что одновременно ограничивает деформации и вращения.
+
+Для вычислительной механики кинематический блок имеет конкретный интерфейс:
+\begin{equation}
+\label{eq:kinematic-computational-contract-v01}
+u_h
+\longmapsto
+\nabla u_h
+\longmapsto
+\varepsilon(u_h),
+\quad
+\operatorname{tr}\varepsilon(u_h),
+\quad
+\varepsilon_{\mathrm{dev}}(u_h).
+\end{equation}
+Здесь $u_h$ --- дискретное поле перемещений, например кусочно-полиномиальное FEM-решение. Вычисление деформации требует пространственного дифференцирования, поэтому ошибка в $u_h$ и ошибка в $\varepsilon(u_h)$ --- разные величины. Поле перемещений может выглядеть гладким визуально, но содержать локально неверные градиенты.
+
+\begin{mlconnection}[что именно может предсказывать модель]
+Суррогат может получать геометрию, параметры материала и нагрузку, а возвращать приближение $\widehat u$. Проверять его только по ошибке перемещений недостаточно. Для инженерной задачи нужно отдельно контролировать
+\[
+\lVert u-\widehat u\rVert,
+\qquad
+\lVert\varepsilon(u)-\varepsilon(\widehat u)\rVert,
+\qquad
+\min_X\det(I+\nabla\widehat u(X)).
+\]
+Последняя величина обнаруживает локальное схлопывание или выворачивание. Осциллирующая ошибка малой амплитуды может почти не менять $\widehat u$, но сильно искажать его производную.
+\end{mlconnection}
+
+В генеративном проектировании кандидат задаётся параметром $\theta$ и определяет область $D(\theta)$ или сетку. После решения задачи упругости получается поле $u(\cdot;\theta)$, а затем деформация
+\begin{equation}
+\label{eq:design-to-strain-v01}
+\theta
+\longmapsto
+D(\theta)
+\longmapsto
+u(\cdot;\theta)
+\longmapsto
+\varepsilon\bigl(u(\cdot;\theta)\bigr).
+\end{equation}
+На этом этапе ещё нельзя решить, выдержит ли конструкция нагрузку: для этого нужен закон, переводящий деформацию в напряжение. Но уже можно отсеять кандидаты с инвертированной геометрией, недопустимо большими деформациями или нарушением предпосылки линейной модели.
+
+\section{Силы, напряжения и законы баланса}
+\label{sec:continuum-stress-balance}
+
+Кинематика из раздела~\ref{sec:continuum-kinematics} описывает изменение формы, но сама по себе не определяет, почему тело деформируется. Для этого нужно различить внешние силы и внутреннее взаимодействие частей тела. Внешняя нагрузка задаётся на объёме и границе, а внутреннее взаимодействие кодируется полем напряжений. Законы баланса связывают эти данные ещё до выбора конкретного материала.
+
+Далее используется линейная постановка на исходной области $D$. Текущие и отсчётные координаты различаются на величину $u$, но в уравнениях баланса это различие отбрасывается вместе с другими членами высшего порядка. Пространственный аргумент поэтому обозначается через $x$, хотя вычислительная сетка строится по исходной конфигурации.
+
+\subsection{Объёмные и поверхностные силы}
+
+Пусть $V\subset D$ --- произвольная часть тела. На неё могут действовать силы двух типов. Объёмная сила распределена по всему $V$ и задаётся плотностью
+\begin{equation}
+\label{eq:body-force-density-v02}
+f:D\to\R^d,
+\qquad
+[f]=\mathrm{N}/\mathrm{m}^3.
+\end{equation}
+Её результирующая на $V$ равна
+\begin{equation}
+\label{eq:body-force-resultant-v02}
+F_{\mathrm{vol}}(V)=\int_V f(x)\,dx.
+\end{equation}
+Так моделируются, например, сила тяжести $f=\rho g$, электромагнитная сила после усреднения по объёму или распределённая инерционная нагрузка в квазистатическом расчёте.
+
+Поверхностная сила действует на ориентированную площадку $S$ с единичной нормалью $n$. Её плотность обозначим через
+\begin{equation}
+\label{eq:traction-field-v02}
+t(x,n),
+\qquad
+[t]=\mathrm{N}/\mathrm{m}^2=\mathrm{Pa}.
+\end{equation}
+Результирующая поверхностная сила имеет вид
+\begin{equation}
+\label{eq:surface-force-resultant-v02}
+F_{\mathrm{surf}}(S)=\int_S t(x,n)\,dS.
+\end{equation}
+Вектор $t$ называют вектором напряжения, или вектором тяги. Он не обязан быть направлен по нормали: давление является частным случаем, а контакт, трение или передача усилия через срез создают касательную составляющую.
+
+Граница всей конструкции обычно разбивается на части
+\begin{equation}
+\label{eq:boundary-split-v02}
+\partial D=\Gamma_D\cup\Gamma_N,
+\qquad
+\Gamma_D\cap\Gamma_N=\varnothing.
+\end{equation}
+На $\Gamma_D$ задаётся перемещение $u=g$, а на $\Gamma_N$ --- поверхностная нагрузка $t=t_N$. Эти данные имеют разную природу: первое условие ограничивает движение, второе сообщает силу на единицу площади.
+
+Важно не смешивать плотность силы и полную силу. Если равномерная тяга $t_N$ приложена к площадке площади $A$, то результирующая равна $A t_N$, а не $t_N$. Аналогично, равномерная объёмная плотность $f$ на теле объёма $|V|$ даёт силу $|V|f$.
+
+\subsection{Вектор напряжения и теорема Коши}
+
+Внутренние силы обнаруживаются мысленным разрезом тела. Одна часть действует на другую через поверхность разреза. В точке $x$ результат зависит от ориентации площадки, поэтому первоначально напряжение является функцией двух аргументов:
+\begin{equation}
+\label{eq:traction-map-v02}
+t:D\times\mathbb S^{d-1}\to\R^d,
+\qquad
+(x,n)\longmapsto t(x,n).
+\end{equation}
+На противоположных сторонах одного и того же внутреннего разреза нормали противоположны. Закон действия и противодействия даёт
+\begin{equation}
+\label{eq:traction-action-reaction-v02}
+t(x,-n)=-t(x,n).
+\end{equation}
+
+Теорема Коши утверждает, что при обычных предположениях сплошной среды зависимость от нормали линейна. Существует тензор второго порядка $\sigma(x)$ такой, что
+\begin{equation}
+\label{eq:cauchy-traction-v02}
+t(x,n)=\sigma(x)n.
+\end{equation}
+Матрица $\sigma$ называется тензором напряжений Коши. Она хранит в одной точке силы, передаваемые через площадки всех ориентаций. Вместо отдельного вектора для каждого $n$ достаточно знать $d^2$ компонент матрицы.
+
+Строго говоря, тензор Коши действует на площадку в текущей конфигурации. При конечных деформациях переход к исходной области требует других мер напряжения, например тензоров Пиолы--Кирхгофа. В линейной упругости различие площадей и нормалей имеет второй порядок и далее не учитывается.
+
+В ортонормированном базисе
+\begin{equation}
+\label{eq:cauchy-stress-matrix-v02}
+\sigma=
+\begin{pmatrix}
+\sigma_{11}&\sigma_{12}&\sigma_{13}\\
+\sigma_{21}&\sigma_{22}&\sigma_{23}\\
+\sigma_{31}&\sigma_{32}&\sigma_{33}
+\end{pmatrix}
+\end{equation}
+в трёхмерном случае. Умножение на $e_j$ выбирает $j$-й столбец, то есть вектор тяги на площадке с нормалью $e_j$:
+\begin{equation}
+\label{eq:stress-columns-v02}
+t(x,e_j)=\sigma(x)e_j.
+\end{equation}
+Диагональные компоненты описывают нормальные напряжения на координатных площадках, а внедиагональные --- касательные компоненты. После вывода симметрии останется шесть независимых компонент вместо девяти.
+
+Формула~\eqref{eq:cauchy-traction-v02} является локальной. На произвольной части тела поверхностная сила записывается как
+\begin{equation}
+\label{eq:internal-force-through-stress-v02}
+F_{\mathrm{surf}}(\partial V)
+=
+\int_{\partial V}\sigma n\,dS.
+\end{equation}
+Именно эта запись позволяет применить теорему Гаусса и перейти от интегрального баланса к PDE.
+
+\begin{connection}[с уравнениями в частных производных]
+Для скалярной задачи Пуассона естественным граничным потоком был $A\nabla u\cdot n$. В упругости неизвестное $u$ векторно, а роль потока играет вектор $\sigma n$. Поэтому условие Неймана имеет вид $\sigma n=t_N$, а дивергенция применяется к тензору построчно и возвращает вектор.
+\end{connection}
+
+\subsection{Нормальная и касательная части напряжения}
+
+Пусть в точке $x$ задана единичная нормаль $n$. Вектор тяги
+\[
+t_n=\sigma n
+\]
+раскладывается на составляющую вдоль $n$ и составляющую в касательной плоскости. Скалярное нормальное напряжение равно
+\begin{equation}
+\label{eq:normal-stress-scalar-v02}
+\sigma_n=n^{\trans}\sigma n=n\cdot t_n.
+\end{equation}
+Соответствующий вектор нормальной части имеет вид
+\begin{equation}
+\label{eq:normal-traction-vector-v02}
+t_n^{\perp}=\sigma_n n.
+\end{equation}
+Касательная часть равна
+\begin{equation}
+\label{eq:shear-traction-vector-v02}
+t_n^{\parallel}
+=
+t_n-t_n^{\perp}
+=
+\bigl(I-nn^{\trans}\bigr)\sigma n,
+\qquad
+n\cdot t_n^{\parallel}=0.
+\end{equation}
+Её модуль
+\begin{equation}
+\label{eq:shear-stress-magnitude-v02}
+\tau_n=\lVert t_n^{\parallel}\rVert
+\end{equation}
+называется касательным напряжением на площадке.
+
+При принятом соглашении $\sigma_n>0$ означает растяжение, а $\sigma_n<0$ --- сжатие. Знак касательной компоненты зависит от выбранного касательного направления, поэтому для оценки её интенсивности часто используется модуль $\tau_n$.
+
+Если для некоторого направления $n$ касательная часть исчезает, то
+\[
+\sigma n=\sigma_n n.
+\]
+Следовательно, $n$ является собственным вектором тензора напряжений, а $\sigma_n$ --- соответствующим собственным значением. Такие направления называются главными. Пока достаточно вывести их из разложения вектора тяги; критерии прочности вводятся позднее.
+
+Напряжение зависит от ориентации площадки. Даже если компоненты матрицы $\sigma$ постоянны, поворот нормали меняет и нормальную, и касательную части. Поэтому максимальное напряжение нельзя надёжно искать, просматривая только координатные компоненты $\sigma_{11},\sigma_{22},\sigma_{33}$.
+
+\subsection{Баланс линейного и углового момента}
+
+Пусть $\rho$ --- плотность массы, а $a$ --- ускорение. Для любой части $V\subset D$ баланс линейного момента записывается как
+\begin{equation}
+\label{eq:linear-momentum-integral-v02}
+\int_V \rho a\,dx
+=
+\int_V f\,dx
++
+\int_{\partial V}\sigma n\,dS.
+\end{equation}
+Применяя теорему Гаусса к тензорному полю $\sigma$, получаем
+\begin{equation}
+\label{eq:stress-divergence-theorem-v02}
+\int_{\partial V}\sigma n\,dS
+=
+\int_V \operatorname{div}\sigma\,dx.
+\end{equation}
+Так как $V$ произвольно, локальная форма баланса имеет вид
+\begin{equation}
+\label{eq:linear-momentum-local-v02}
+\rho a=\operatorname{div}\sigma+f.
+\end{equation}
+В статической задаче $a=0$, поэтому
+\begin{equation}
+\label{eq:static-equilibrium-v02}
+-\operatorname{div}\sigma=f
+\quad\text{в }D.
+\end{equation}
+Это уравнение ещё не замкнуто: неизвестны и $u$, и $\sigma$. В следующем разделе материальный закон свяжет напряжение с деформацией $\varepsilon(u)$.
+
+Баланс углового момента относительно начала координат требует
+\begin{equation}
+\label{eq:angular-momentum-integral-v02}
+\int_V x\times\rho a\,dx
+=
+\int_V x\times f\,dx
++
+\int_{\partial V}x\times(\sigma n)\,dS.
+\end{equation}
+В двумерной задаче векторное произведение в~\eqref{eq:angular-momentum-integral-v02} понимается как скалярный момент относительно оси, перпендикулярной плоскости.
+
+В классической механике сплошной среды, где отсутствуют независимые объёмные и поверхностные пары сил, совместное выполнение~\eqref{eq:linear-momentum-integral-v02} и~\eqref{eq:angular-momentum-integral-v02} приводит к симметрии
+\begin{equation}
+\label{eq:cauchy-stress-symmetry-v02}
+\sigma=\sigma^{\trans}.
+\end{equation}
+Физически равенство $\sigma_{ij}=\sigma_{ji}$ исключает нескомпенсированный локальный момент. Это не дополнительное свойство материала, а следствие баланса углового момента в выбранной модели.
+
+Симметрия может нарушаться в обобщённых континуальных моделях с внутренними моментами, микровращениями или couple-stress. Такие модели здесь не рассматриваются. Для обычной линейной упругости~\eqref{eq:cauchy-stress-symmetry-v02} является обязательным условием.
+
+Статическая краевая задача на этом этапе имеет незамкнутый каркас
+\begin{equation}
+\label{eq:stress-equilibrium-boundary-v02}
+\begin{cases}
+-\operatorname{div}\sigma=f,&x\in D,\\
+u=g,&x\in\Gamma_D,\\
+\sigma n=t_N,&x\in\Gamma_N,\\
+\sigma=\sigma^{\trans}.&
+\end{cases}
+\end{equation}
+\subsection{Законченный расчёт напряжения на площадке}
+\label{subsec:traction-computation-v02}
+
+Рассмотрим плоское симметричное напряжённое состояние
+\begin{equation}
+\label{eq:worked-stress-tensor-v02}
+\sigma=
+\begin{pmatrix}
+120&40\\
+40&60
+\end{pmatrix}\ \mathrm{MPa}
+\end{equation}
+и площадку с единичной нормалью
+\begin{equation}
+\label{eq:worked-normal-v02}
+n=
+\begin{pmatrix}
+3/5\\
+4/5
+\end{pmatrix}.
+\end{equation}
+Сначала вычисляем полный вектор тяги:
+\begin{equation}
+\label{eq:worked-traction-v02}
+t_n=\sigma n
+=
+\begin{pmatrix}
+120&40\\
+40&60
+\end{pmatrix}
+\begin{pmatrix}
+3/5\\
+4/5
+\end{pmatrix}
+=
+\begin{pmatrix}
+104\\
+72
+\end{pmatrix}\ \mathrm{MPa}.
+\end{equation}
+Его нормальная скалярная компонента равна
+\begin{equation}
+\label{eq:worked-normal-stress-v02}
+\sigma_n
+=n^{\trans}t_n
+=
+\frac35\cdot104+
+\frac45\cdot72
+=120\ \mathrm{MPa}.
+\end{equation}
+Следовательно, вектор нормальной части
+\begin{equation}
+\label{eq:worked-normal-vector-v02}
+t_n^{\perp}=\sigma_n n
+=
+120
+\begin{pmatrix}
+3/5\\
+4/5
+\end{pmatrix}
+=
+\begin{pmatrix}
+72\\
+96
+\end{pmatrix}\ \mathrm{MPa}.
+\end{equation}
+Касательная часть получается вычитанием:
+\begin{equation}
+\label{eq:worked-shear-vector-v02}
+t_n^{\parallel}
+=t_n-t_n^{\perp}
+=
+\begin{pmatrix}
+32\\
+-24
+\end{pmatrix}\ \mathrm{MPa}.
+\end{equation}
+Проверка ортогональности даёт
+\[
+n\cdot t_n^{\parallel}
+=
+\frac35\cdot32+
+\frac45\cdot(-24)=0.
+\]
+Модуль касательного напряжения равен
+\begin{equation}
+\label{eq:worked-shear-magnitude-v02}
+\tau_n
+=
+\sqrt{32^2+(-24)^2}
+=40\ \mathrm{MPa}.
+\end{equation}
+Таким образом, на выбранной площадке действует растягивающее нормальное напряжение $120\ \mathrm{MPa}$ и касательное напряжение $40\ \mathrm{MPa}$. На противоположной стороне разреза нормаль равна $-n$, поэтому вектор тяги меняет знак, но значения $\sigma_n$ и $\tau_n$ как интенсивности остаются теми же.
+
+\subsection{Граничные данные и вычислительный контракт}
+
+После дискретизации тензор напряжений обычно вычисляется по элементам или в точках интегрирования. Для каждого граничного участка с нормалью $n_h$ проверяется тяга
+\begin{equation}
+\label{eq:discrete-traction-v02}
+t_h=\sigma_h n_h.
+\end{equation}
+Нормаль является частью входных данных. Ошибка ориентации грани меняет знак $t_h$, а плохая геометрия сетки искажает саму нормаль. Поэтому проверка нагрузки должна включать не только значения $t_N$, но и соответствие между граничными метками, нормалями и единицами измерения.
+
+Для статической модели естественны три локальных остатка:
+\begin{align}
+ r_{\mathrm{eq}}
+ &=\operatorname{div}\sigma_h+f,
+ \label{eq:equilibrium-residual-v02}\\
+ r_{\mathrm{sym}}
+ &=\sigma_h-\sigma_h^{\trans},
+ \label{eq:symmetry-residual-v02}\\
+ r_{\Gamma_N}
+ &=\sigma_h n_h-t_N.
+ \label{eq:traction-boundary-residual-v02}
+\end{align}
+Первый измеряет нарушение равновесия в объёме, второй --- нарушение баланса моментов, третий --- несогласованность с заданной поверхностной нагрузкой. Малое значение одного остатка не компенсирует большое значение другого.
+
+\begin{mlconnection}[проверяемый выход суррогата]
+Если модель непосредственно предсказывает поле $\widehat\sigma$, её выходом должна быть симметричная матрица с размерностью давления. Проверка по данным напряжений дополняется физическими остатками
+\[
+\operatorname{div}\widehat\sigma+f,
+\qquad
+\widehat\sigma-\widehat\sigma^{\trans},
+\qquad
+\widehat\sigma n-t_N.
+\]
+Поле может хорошо совпадать с обучающими значениями в среднем, но нарушать локальное равновесие или граничную тягу. Предсказание только отдельных компонент также зависит от выбранной системы координат; тензорный выход должен корректно преобразовываться при повороте конструкции.
+\end{mlconnection}
+
+В генеративном проектировании кандидат $\theta$ меняет область $D(\theta)$, её границу и нормали. Поэтому одна и та же численная нагрузка не обязательно описывает одну и ту же физическую задачу после изменения геометрии. Корректный вычислительный граф имеет вид
+\begin{equation}
+\label{eq:design-stress-contract-v02}
+\theta
+\longmapsto
+\bigl(D(\theta),\Gamma_D(\theta),\Gamma_N(\theta),n(\theta)\bigr)
+\longmapsto
+\sigma(\cdot;\theta)
+\longmapsto
+\bigl(r_{\mathrm{eq}},r_{\Gamma_N}\bigr).
+\end{equation}
+До введения материального закона этот граф ещё не определяет $\sigma$ из $u$. Он лишь фиксирует обязательные балансы, которым должен удовлетворять любой последующий решатель, суррогат или генератор конструкции.
+
+\section{Материальный закон и линейная изотропная упругость}
+\label{sec:linear-isotropic-elasticity}
+
+Уравнения баланса из раздела~\ref{sec:continuum-stress-balance} связывают напряжение с внешними силами, но сами по себе не определяют поле $\sigma$. Для замыкания модели требуется закон материала: правило, которое переводит деформацию в напряжение. Именно здесь геометрически одинаковые тела начинают вести себя по-разному из-за различий в составе, микроструктуре и температуре.
+
+\subsection{Материальный закон как замыкание задачи}
+
+Кинематическая связь
+\[
+ u\longmapsto\varepsilon(u)
+\]
+определяет изменение формы, а баланс
+\[
+ \operatorname{div}\sigma+f=0
+\]
+задаёт равновесие. Между ними вводится материальный закон
+\begin{equation}
+\label{eq:constitutive-map-v03}
+ \sigma=\mathcal{S}(\varepsilon;m),
+\end{equation}
+где $m$ обозначает параметры материала. После подстановки~\eqref{eq:constitutive-map-v03} в баланс неизвестным остаётся поле перемещений $u$.
+
+В этой главе рассматривается линейно-упругий материал. Слово \emph{упругий} означает, что после снятия нагрузки модель не сохраняет остаточную деформацию. Слово \emph{линейный} означает линейную зависимость $\sigma$ от малой деформации $\varepsilon$. Такая постановка не описывает пластичность, накопление повреждения, разрушение и зависимость от истории нагружения.
+
+Материал называется изотропным, если его отклик не выделяет направления. При повороте системы координат ортогональной матрицей $Q$ выполняется
+\begin{equation}
+\label{eq:isotropic-covariance-v03}
+ \mathcal{S}(Q\varepsilon Q^{\trans};m)
+ =Q\,\mathcal{S}(\varepsilon;m)Q^{\trans}.
+\end{equation}
+Поэтому одна и та же пара параметров описывает растяжение и сдвиг независимо от ориентации образца. Для композита, волокнистого или слоистого материала условие~\eqref{eq:isotropic-covariance-v03} обычно неверно: тогда требуется анизотропный тензор упругости.
+
+Линейность и изотропия оставляют только две независимые материальные константы. В тензорной форме закон записывается без выбора координат и автоматически сохраняет симметрию напряжения.
+
+\subsection{Закон Гука в тензорной форме}
+
+\begin{definition}
+Линейным изотропным законом упругости называется соотношение
+\begin{equation}
+\label{eq:hooke-lame-v03}
+ \sigma
+ =\lambda\operatorname{tr}(\varepsilon)I+2\mu\varepsilon,
+\end{equation}
+где $\lambda$ и $\mu$ --- параметры Ламе, а $\mu$ одновременно является модулем сдвига.
+\end{definition}
+
+Первое слагаемое в~\eqref{eq:hooke-lame-v03} зависит только от изменения объёма. Второе реагирует и на изменение формы, и на объёмную деформацию. В индексной записи
+\begin{equation}
+\label{eq:hooke-index-v03}
+ \sigma_{ij}
+ =\lambda\varepsilon_{kk}\delta_{ij}+2\mu\varepsilon_{ij}.
+\end{equation}
+Одинаковый индекс $k$ суммируется, поэтому $\varepsilon_{kk}=\operatorname{tr}\varepsilon$.
+
+Закон можно представить линейным оператором четвёртого порядка:
+\begin{equation}
+\label{eq:elasticity-tensor-v03}
+ \sigma=\mathbb{C}:\varepsilon,
+ \qquad
+ C_{ijkl}
+ =\lambda\delta_{ij}\delta_{kl}
+ +\mu(\delta_{ik}\delta_{jl}+\delta_{il}\delta_{jk}).
+\end{equation}
+Тензор $\mathbb{C}$ называют тензором упругости. Для изотропного материала его компоненты полностью определяются двумя числами. Для общего анизотропного материала независимых коэффициентов больше, а замена~\eqref{eq:elasticity-tensor-v03} на скалярный модуль Юнга теряет направление отклика.
+
+Обратное соотношение выражает деформацию через напряжение:
+\begin{equation}
+\label{eq:compliance-lame-v03}
+ \varepsilon
+ =\frac{1}{2\mu}\sigma
+ -\frac{\lambda}{2\mu(3\lambda+2\mu)}
+  \operatorname{tr}(\sigma)I.
+\end{equation}
+Оператор в правой части называется податливостью. Формула требует $\mu\neq0$ и $3\lambda+2\mu\neq0$; физическая положительность энергии ниже задаёт более строгие условия.
+
+Из~\eqref{eq:hooke-lame-v03} и кинематической связи~\eqref{eq:small-strain-v01} получается статическое уравнение линейной упругости
+\begin{equation}
+\label{eq:navier-lame-v03}
+ -\operatorname{div}\!\left(
+ \lambda(\nabla\cdot u)I+2\mu\varepsilon(u)
+ \right)=f.
+\end{equation}
+При постоянных $\lambda$ и $\mu$ оно эквивалентно
+\begin{equation}
+\label{eq:navier-lame-constant-v03}
+ -\mu\Delta u-(\lambda+\mu)\nabla(\nabla\cdot u)=f.
+\end{equation}
+Если параметры меняются по пространству, выносить их из дивергенции нельзя.
+
+\subsection{Модуль Юнга, коэффициент Пуассона и допустимые параметры}
+
+В инженерных данных материал чаще задаётся модулем Юнга $E$ и коэффициентом Пуассона $\nu$. При одноосном напряжении $\sigma_{11}=\sigma_0$, остальные компоненты $\sigma$ равны нулю, и
+\begin{equation}
+\label{eq:uniaxial-compliance-v03}
+ \varepsilon_{11}=\frac{\sigma_0}{E},
+ \qquad
+ \varepsilon_{22}=\varepsilon_{33}
+ =-\nu\frac{\sigma_0}{E}.
+\end{equation}
+Модуль $E$ измеряет сопротивление продольному растяжению, а $\nu$ --- относительное поперечное сужение.
+
+Связь двух наборов параметров равна
+\begin{align}
+ \mu&=\frac{E}{2(1+\nu)},
+ &
+ \lambda&=\frac{E\nu}{(1+\nu)(1-2\nu)},
+ \label{eq:young-poisson-to-lame-v03}\\
+ E&=\frac{\mu(3\lambda+2\mu)}{\lambda+\mu},
+ &
+ \nu&=\frac{\lambda}{2(\lambda+\mu)}.
+ \label{eq:lame-to-young-poisson-v03}
+\end{align}
+
+Для объёмной реакции вводится модуль всестороннего сжатия
+\begin{equation}
+\label{eq:bulk-modulus-v03}
+ K=\lambda+\frac{2}{3}\mu
+ =\frac{E}{3(1-2\nu)}.
+\end{equation}
+Он связывает среднее напряжение с относительным изменением объёма. Полезна также формула
+\begin{equation}
+\label{eq:young-from-bulk-shear-v03}
+ E=\frac{9K\mu}{3K+\mu}.
+\end{equation}
+
+Плотность упругой энергии определяется как
+\begin{equation}
+\label{eq:elastic-energy-density-v03}
+ W(\varepsilon)
+ =\frac12\sigma:\varepsilon
+ =\frac{\lambda}{2}\bigl(\operatorname{tr}\varepsilon\bigr)^2
+  +\mu\,\varepsilon:\varepsilon.
+\end{equation}
+Для ненулевой деформации энергия должна быть положительной. После объёмно-девиаторного разложения это требует
+\begin{equation}
+\label{eq:elastic-admissibility-v03}
+ \mu>0,
+ \qquad
+ K>0.
+\end{equation}
+В параметрах $(E,\nu)$ условия~\eqref{eq:elastic-admissibility-v03} эквивалентны
+\begin{equation}
+\label{eq:young-poisson-admissibility-v03}
+ E>0,
+ \qquad
+ -1<\nu<\frac12.
+\end{equation}
+Обычные конструкционные материалы имеют положительный $\nu$, тогда как отрицательное значение соответствует ауксетическому поперечному расширению при растяжении. Граница $\nu\to1/2$ означает почти несжимаемый материал: $K$ и $\lambda$ растут, а $\mu$ остаётся конечным при фиксированном $E$.
+
+\subsection{Объёмный и девиаторный отклик}
+
+В трёхмерном случае разложим деформацию как
+\begin{equation}
+\label{eq:strain-vol-dev-v03}
+ \varepsilon
+ =\varepsilon_{\mathrm{vol}}+\varepsilon_{\mathrm{dev}},
+ \qquad
+ \varepsilon_{\mathrm{vol}}
+ =\frac13\operatorname{tr}(\varepsilon)I,
+ \qquad
+ \operatorname{tr}(\varepsilon_{\mathrm{dev}})=0.
+\end{equation}
+Подставляя~\eqref{eq:strain-vol-dev-v03} в закон Гука, получаем
+\begin{equation}
+\label{eq:hooke-vol-dev-v03}
+ \sigma
+ =K\operatorname{tr}(\varepsilon)I
+  +2\mu\varepsilon_{\mathrm{dev}}.
+\end{equation}
+Средняя часть напряжения и девиатор равны
+\begin{align}
+ \sigma_{\mathrm{m}}
+ &=\frac13\operatorname{tr}(\sigma)
+ =K\operatorname{tr}(\varepsilon),
+ \label{eq:mean-stress-v03}\\
+ s
+ &=\sigma-\sigma_{\mathrm{m}}I
+ =2\mu\varepsilon_{\mathrm{dev}}.
+ \label{eq:stress-deviator-v03}
+\end{align}
+Таким образом, $K$ управляет изменением объёма, а $\mu$ --- изменением формы.
+
+Энергия~\eqref{eq:elastic-energy-density-v03} принимает разделённый вид
+\begin{equation}
+\label{eq:energy-vol-dev-v03}
+ W(\varepsilon)
+ =\frac{K}{2}\bigl(\operatorname{tr}\varepsilon\bigr)^2
+ +\mu\,\varepsilon_{\mathrm{dev}}:\varepsilon_{\mathrm{dev}}.
+\end{equation}
+Оба слагаемых неотрицательны при~\eqref{eq:elastic-admissibility-v03}. Поэтому объёмную и сдвиговую жёсткость нельзя взаимозаменять: большое $K$ не делает материал устойчивым к сдвигу, а большое $\mu$ не запрещает изменение объёма.
+
+При $\nu$ близком к $1/2$ решение стремится удовлетворять
+\begin{equation}
+\label{eq:near-incompressibility-v03}
+ \nabla\cdot u
+ =\operatorname{tr}\varepsilon(u)
+ \approx0.
+\end{equation}
+В непрерывной модели это допустимое предельное поведение. В стандартной дискретизации по перемещениям чрезмерно большой $\lambda$ может вызвать численное запирание: конечномерное пространство не умеет одновременно приближать деформацию и почти точное условие~\eqref{eq:near-incompressibility-v03}. Само явление и смешанная постановка будут рассмотрены отдельно.
+
+Для двумерной модели необходимо различать плоское напряжённое состояние и плоскую деформацию. В первом зануляются компоненты напряжения вне плоскости, во втором --- компоненты деформации вне плоскости. Эти редукции дают разные эффективные матрицы $\mathbb{C}$; простое удаление третьей строки и столбца из трёхмерной формулы некорректно.
+
+\subsection{Законченный расчёт одноосного растяжения}
+\label{subsec:uniaxial-tension-v03}
+
+Рассмотрим однородный образец с
+\begin{equation}
+\label{eq:worked-material-data-v03}
+ E=200\ \mathrm{GPa},
+ \qquad
+ \nu=0.30,
+\end{equation}
+на который действует одноосное растягивающее напряжение
+\begin{equation}
+\label{eq:worked-uniaxial-stress-v03}
+ \sigma
+ =\begin{pmatrix}
+ 100&0&0\\
+ 0&0&0\\
+ 0&0&0
+ \end{pmatrix}\mathrm{MPa}.
+\end{equation}
+
+Продольная деформация из~\eqref{eq:uniaxial-compliance-v03} равна
+\begin{equation}
+\label{eq:worked-longitudinal-strain-v03}
+ \varepsilon_{11}
+ =\frac{100\ \mathrm{MPa}}{200000\ \mathrm{MPa}}
+ =5.0\cdot10^{-4}.
+\end{equation}
+Поперечные компоненты составляют
+\begin{equation}
+\label{eq:worked-transverse-strain-v03}
+ \varepsilon_{22}=\varepsilon_{33}
+ =-0.30\cdot5.0\cdot10^{-4}
+ =-1.5\cdot10^{-4}.
+\end{equation}
+Следовательно,
+\begin{equation}
+\label{eq:worked-strain-tensor-v03}
+ \varepsilon
+ =10^{-4}
+ \begin{pmatrix}
+ 5.0&0&0\\
+ 0&-1.5&0\\
+ 0&0&-1.5
+ \end{pmatrix}.
+\end{equation}
+
+Линейное относительное изменение объёма равно следу:
+\begin{equation}
+\label{eq:worked-volume-strain-v03}
+ \operatorname{tr}\varepsilon
+ =2.0\cdot10^{-4}.
+\end{equation}
+Образец удлиняется вдоль нагрузки и сужается поперёк, но при $\nu=0.30$ его объём всё же увеличивается.
+
+Параметры Ламе вычисляются по~\eqref{eq:young-poisson-to-lame-v03}:
+\begin{align}
+ \mu
+ &=\frac{200}{2(1+0.30)}
+ =76.923\ \mathrm{GPa},
+ \label{eq:worked-mu-v03}\\
+ \lambda
+ &=\frac{200\cdot0.30}{(1+0.30)(1-0.60)}
+ =115.385\ \mathrm{GPa}.
+ \label{eq:worked-lambda-v03}
+\end{align}
+Модуль всестороннего сжатия равен
+\begin{equation}
+\label{eq:worked-bulk-v03}
+ K=\lambda+\frac23\mu
+ =166.667\ \mathrm{GPa}.
+\end{equation}
+
+Проверим закон Гука для первой нормальной компоненты. Все модули переводим в MPa:
+\begin{align}
+ \sigma_{11}
+ &=\lambda\operatorname{tr}\varepsilon+2\mu\varepsilon_{11}
+ \notag\\
+ &=115385\cdot2.0\cdot10^{-4}
+ +2\cdot76923\cdot5.0\cdot10^{-4}
+ \notag\\
+ &=23.077+76.923
+ =100.000\ \mathrm{MPa}.
+ \label{eq:worked-hooke-check-v03}
+\end{align}
+Для поперечной компоненты
+\begin{equation}
+\label{eq:worked-transverse-stress-check-v03}
+ \sigma_{22}
+ =115385\cdot2.0\cdot10^{-4}
+ +2\cdot76923\cdot(-1.5\cdot10^{-4})
+ =0.
+\end{equation}
+Тем самым восстановлен исходный одноосный тензор напряжения.
+
+Плотность накопленной энергии равна
+\begin{equation}
+\label{eq:worked-energy-v03}
+ W
+ =\frac12\sigma:\varepsilon
+ =\frac12\cdot100\cdot10^6\cdot5.0\cdot10^{-4}
+ =2.5\cdot10^4\ \mathrm{J/m^3}.
+\end{equation}
+Деформация порядка $5\cdot10^{-4}$ мала, поэтому линейная кинематика согласована с числом в расчёте. Однако это не проверяет отсутствие пластичности: для конкретного материала напряжение $100\ \mathrm{MPa}$ дополнительно сравнивают с экспериментальной границей упругости.
+
+\subsection{Материальное поле и проверяемый контракт для ML}
+
+В неоднородной конструкции параметры зависят от точки:
+\begin{equation}
+\label{eq:material-field-v03}
+ m(x)=\bigl(E(x),\nu(x)\bigr)
+ \quad\text{или}\quad
+ m(x)=\bigl(K(x),\mu(x)\bigr).
+\end{equation}
+Тогда вычислительная цепочка принимает вид
+\begin{equation}
+\label{eq:material-pde-chain-v03}
+ m(x)
+ \longmapsto
+ \mathbb{C}(x)
+ \longmapsto
+ \sigma(x)=\mathbb{C}(x):\varepsilon(u(x))
+ \longmapsto
+ -\operatorname{div}\sigma=f.
+\end{equation}
+Разрыв параметров на границе материалов допустим, но напряжение и перемещение должны удовлетворять условиям сопряжения. Сглаживание поля $E(x)$ только ради удобства нейросети меняет физическую задачу и может скрыть концентрацию деформации возле интерфейса.
+
+Единицы должны быть согласованы. $E$, $\lambda$, $\mu$, $K$ и компоненты $\sigma$ имеют размерность давления, тогда как $\varepsilon$ и $\nu$ безразмерны. Ошибка между Pa и MPa умножает жёсткость на $10^6$ и не обязана проявиться как ошибка линейного решателя.
+
+\begin{mlconnection}[обучаемый материальный закон]
+Если сеть заменяет классический закон, её входом служат деформация и параметры состояния, а выходом --- симметричный тензор напряжений:
+\[
+ (\varepsilon,m)\longmapsto\widehat\sigma.
+\]
+Для линейного изотропного эталона проверяются
+\[
+ \widehat\sigma(0,m)=0,
+ \qquad
+ \widehat\sigma(Q\varepsilon Q^{\trans},m)
+ =Q\widehat\sigma(\varepsilon,m)Q^{\trans},
+ \qquad
+ \frac12\widehat\sigma:\varepsilon\ge0.
+\]
+Малая ошибка по компонентам не гарантирует положительность энергии или корректный отклик после поворота. Обучение вне диапазона деформаций, на котором получены данные, не превращает линейный закон в модель пластичности или разрушения.
+\end{mlconnection}
+
+В генеративном проектировании параметр $\theta$ может задавать распределение материала. Физический интерфейс имеет вид
+\begin{equation}
+\label{eq:generative-material-contract-v03}
+ \theta
+ \longmapsto
+ m(x;\theta)
+ \longmapsto
+ \mathbb{C}(x;\theta)
+ \longmapsto
+ u(x;\theta),\ \sigma(x;\theta).
+\end{equation}
+До решения уравнения равновесия нельзя заключать, что увеличение $E$ в отдельной области улучшило конструкцию: нагрузка перераспределяется по всему телу. Кроме того, допустимость параметров~\eqref{eq:elastic-admissibility-v03}, масса, технологичность и границы линейной модели должны проверяться отдельно. Конкретный функционал конструкции будет введён после энергетической и слабой постановок.
+\section{Сильная, энергетическая и слабая постановки задачи упругости}
+\label{sec:elasticity-variational-formulation}
+
+Кинематическое соотношение~\eqref{eq:small-strain-v01}, закон Гука~\eqref{eq:hooke-lame-v03} и баланс сил из раздела~\ref{sec:continuum-stress-balance} образуют замкнутую модель. Теперь нужно точно указать, в каком смысле ищется решение, какие граничные данные входят в задачу и почему численный решатель получает единственный ответ. Для этого одна и та же задача будет записана в сильной, энергетической и слабой формах.
+
+\subsection{Краевая задача в сильной форме}
+
+Пусть граница тела разложена на непересекающиеся части
+\begin{equation}
+\label{eq:boundary-split-v04}
+ \partial D=\Gamma_D\cup\Gamma_N,
+ \qquad
+ \Gamma_D\cap\Gamma_N=\varnothing.
+\end{equation}
+На $\Gamma_D$ задаётся перемещение $g$, а на $\Gamma_N$ --- тяга $t_N$. В квазистатическом режиме ускорение отсутствует, поэтому сильная постановка линейной упругости имеет вид
+\begin{equation}
+\label{eq:strong-elasticity-v04}
+\begin{cases}
+ -\operatorname{div}\sigma(u)=f,&x\in D,\\
+ \sigma(u)=\mathbb C:\varepsilon(u),&x\in D,\\
+ u=g,&x\in\Gamma_D,\\
+ \sigma(u)n=t_N,&x\in\Gamma_N.
+\end{cases}
+\end{equation}
+Здесь $f$ --- объёмная плотность силы, а $n$ --- внешняя единичная нормаль. Первое уравнение выражает локальное равновесие, второе задаёт материал, третье исключает запрещённые движения, четвёрто передаёт приложенную поверхностную нагрузку.
+
+Для однородного изотропного материала с постоянными $\lambda$ и $\mu$ подстановка~\eqref{eq:hooke-lame-v03} даёт оператор Навье--Ламе:
+\begin{equation}
+\label{eq:navier-lame-v04}
+ -\mu\Delta u-(\lambda+\mu)\nabla(\operatorname{div}u)=f.
+\end{equation}
+Если параметры материала зависят от точки, производные действуют и на них, поэтому формула~\eqref{eq:navier-lame-v04} уже неприменима без дополнительных членов. В неоднородной конструкции безопаснее сохранять дивергентную форму $-\operatorname{div}(\mathbb C(x):\varepsilon(u))=f$.
+
+Сильная форма требует существования вторых производных перемещения и корректного следа напряжения на границе. В реальной конструкции материал может быть кусочно-постоянным, а напряжение --- иметь скачок на интерфейсе. Поэтому для анализа и FEM удобнее перенести одну производную с $u$ на тестовую функцию.
+
+\subsection{Энергия деформации и потенциальная энергия}
+
+Для линейного упругого материала плотность энергии деформации равна
+\begin{equation}
+\label{eq:strain-energy-density-v04}
+ W(\varepsilon)
+ =\frac12\varepsilon:\mathbb C:\varepsilon
+ =\frac12\sigma:\varepsilon.
+\end{equation}
+Полная внутренняя энергия пробного перемещения $v$ определяется интегралом
+\begin{equation}
+\label{eq:internal-energy-v04}
+ \mathcal U(v)
+ =\frac12\int_D
+ \varepsilon(v):\mathbb C:\varepsilon(v)\,dx.
+\end{equation}
+Работа заданных внешних сил задаётся линейным функционалом
+\begin{equation}
+\label{eq:load-functional-v04}
+ \ell(v)
+ =\int_D f\cdot v\,dx
+ +\int_{\Gamma_N}t_N\cdot v\,dS.
+\end{equation}
+При принятом знаке $t_N$ является силой, приложенной к телу. Полная потенциальная энергия имеет вид
+\begin{equation}
+\label{eq:total-potential-energy-v04}
+ \Pi(v)=\mathcal U(v)-\ell(v).
+\end{equation}
+Равновесное перемещение не выбирается произвольно: оно стационарно относительно всех допустимых малых вариаций, не нарушающих условие на $\Gamma_D$.
+
+Пусть $w$ --- допустимое перемещение, а $z$ равно нулю на $\Gamma_D$. Тогда
+\begin{align}
+ \left.\frac{d}{d\tau}\Pi(w+\tau z)\right|_{\tau=0}
+ &=\int_D
+ \varepsilon(z):\mathbb C:\varepsilon(w)\,dx
+ -\ell(z).
+ \label{eq:first-variation-potential-v04}
+\end{align}
+Условие равновесия требует, чтобы выражение~\eqref{eq:first-variation-potential-v04} обращалось в нуль для любого такого $z$. Эта формула является принципом виртуальных работ: виртуальная работа внутренних напряжений равна виртуальной работе внешних сил.
+
+Для линейного материала с положительной энергией функционал $\Pi$ выпуклый. Если закрепление исключает жёсткие движения, стационарная точка является единственным минимумом. Для нелинейного материала или потери устойчивости стационарная точка не обязана быть глобальным минимумом; линейная теория этого различия не видит.
+
+\subsection{Слабая постановка и граничные условия}
+
+Введём аффинное пространство допустимых перемещений и пространство вариаций:
+\begin{align}
+ V_g
+ &=\left\{v\in H^1(D;\R^d):v=g\text{ на }\Gamma_D\right\},
+ \label{eq:admissible-space-v04}\\
+ V_0
+ &=\left\{v\in H^1(D;\R^d):v=0\text{ на }\Gamma_D\right\}.
+ \label{eq:test-space-v04}
+\end{align}
+Равенство на границе понимается в смысле следа. В пространстве $H^1$ само перемещение и его первые слабые производные квадратично интегрируемы; вторые производные для постановки задачи не требуются.
+
+Определим билинейную форму
+\begin{equation}
+\label{eq:elastic-bilinear-form-v04}
+ a(w,v)
+ =\int_D
+ \varepsilon(v):\mathbb C:\varepsilon(w)\,dx.
+\end{equation}
+Слабая задача состоит в нахождении $u\in V_g$, для которого
+\begin{equation}
+\label{eq:weak-elasticity-v04}
+ a(u,v)=\ell(v)
+ \qquad
+ \text{для всех }v\in V_0.
+\end{equation}
+
+Связь с сильной формой получается интегрированием по частям. Для гладких $u$ и $v$
+\begin{align}
+ \int_D\sigma(u):\varepsilon(v)\,dx
+ &=-\int_D\operatorname{div}\sigma(u)\cdot v\,dx
+ +\int_{\partial D}(\sigma(u)n)\cdot v\,dS.
+ \label{eq:elasticity-integration-by-parts-v04}
+\end{align}
+На $\Gamma_D$ тестовая функция равна нулю, а на $\Gamma_N$ подставляется $\sigma n=t_N$. Поэтому~\eqref{eq:elasticity-integration-by-parts-v04} превращается в~\eqref{eq:weak-elasticity-v04}.
+
+Условие $u=g$ встроено в пространство $V_g$ и называется существенным. Условие $\sigma n=t_N$ возникает в граничном члене после интегрирования по частям и называется естественным. Такое различие уже появлялось для скалярных PDE в главе~\ref{chap:partial-differential-equations}; здесь скалярный градиент заменён симметричным градиентом, а поток --- вектором тяги.
+
+\subsection{Корректность, неравенство Корна и жёсткие моды}
+
+Положительность локальной энергии материала означает существование $c_{\mathbb C}>0$, для которого
+\begin{equation}
+\label{eq:elastic-tensor-coercivity-v04}
+ e:\mathbb C:e
+ \ge c_{\mathbb C}\lVert e\rVert^2
+\end{equation}
+для любого симметричного тензора $e$. Однако этого недостаточно: симметричный градиент равен нулю на переносах и инфинитезимальных вращениях.
+
+Если закреплённая часть границы имеет ненулевую меру и исключает жёсткие движения, выполняется неравенство Корна
+\begin{equation}
+\label{eq:korn-inequality-v04}
+ \lVert v\rVert_{H^1(D)}
+ \le C_K\lVert\varepsilon(v)\rVert_{L^2(D)},
+ \qquad v\in V_0.
+\end{equation}
+Совместно с~\eqref{eq:elastic-tensor-coercivity-v04} оно даёт коэрцитивность
+\begin{equation}
+\label{eq:elastic-coercivity-v04}
+ a(v,v)
+ \ge c\lVert v\rVert_{H^1(D)}^2,
+ \qquad v\in V_0.
+\end{equation}
+При непрерывности $a$ и $\ell$ теорема Лакса--Мильграма гарантирует единственное слабое решение.
+
+Если $\Gamma_D$ пуста, все жёсткие движения лежат в ядре энергии. Тогда решение определено только с точностью до переноса и вращения, а нагрузки должны быть уравновешены на каждом жёстком движении $r$:
+\begin{equation}
+\label{eq:pure-traction-compatibility-v04}
+ \int_D f\cdot r\,dx
+ +\int_{\partial D}t_N\cdot r\,dS
+ =0.
+\end{equation}
+В дискретной задаче это проявляется нулевыми собственными значениями матрицы жёсткости. Искусственное добавление малой диагонали может заставить решатель выдать число, но одновременно меняет физическую модель. Правильное исправление --- задать достаточные закрепления или явно исключить жёсткие моды.
+
+\subsection{Законченный расчёт растянутого стержня}
+\label{subsec:worked-bar-v04}
+
+Рассмотрим прямой стержень длины
+\[
+ L=1\ \mathrm{m},
+\]
+площади поперечного сечения
+\[
+ A=400\ \mathrm{mm}^2=4.0\cdot10^{-4}\ \mathrm{m}^2
+\]
+и модуля Юнга
+\[
+ E=200\ \mathrm{GPa}.
+\]
+Левый конец закреплён, а к правому приложена растягивающая сила
+\[
+ P=20\ \mathrm{kN}.
+\]
+Объёмной силой пренебрегаем. Одномерная сильная задача имеет вид
+\begin{equation}
+\label{eq:bar-strong-v04}
+ -(EAu')'=0,
+ \qquad
+ u(0)=0,
+ \qquad
+ EAu'(L)=P.
+\end{equation}
+Поскольку $E$ и $A$ постоянны, производная $u'$ также постоянна:
+\begin{equation}
+\label{eq:bar-solution-v04}
+ u(x)=\frac{P}{EA}x.
+\end{equation}
+Напряжение и деформация равны
+\begin{align}
+ \sigma
+ &=\frac{P}{A}
+ =\frac{2.0\cdot10^4}{4.0\cdot10^{-4}}
+ =50\ \mathrm{MPa},
+ \label{eq:bar-stress-v04}\\
+ \varepsilon
+ &=\frac{\sigma}{E}
+ =\frac{50\cdot10^6}{200\cdot10^9}
+ =2.5\cdot10^{-4}.
+ \label{eq:bar-strain-v04}
+\end{align}
+Перемещение нагруженного конца составляет
+\begin{equation}
+\label{eq:bar-tip-displacement-v04}
+ u(L)
+ =\frac{PL}{EA}
+ =2.5\cdot10^{-4}\ \mathrm{m}
+ =0.25\ \mathrm{mm}.
+\end{equation}
+
+Проверим слабую форму. Для любой тестовой функции $v$ с $v(0)=0$
+\begin{align}
+ a(u,v)
+ &=\int_0^L EAu'v'\,dx
+ =P\int_0^L v'\,dx
+ =P\bigl(v(L)-v(0)\bigr)
+ =Pv(L),
+ \label{eq:bar-weak-check-v04}
+\end{align}
+что совпадает с работой граничной силы.
+
+Внутренняя энергия равна
+\begin{equation}
+\label{eq:bar-energy-v04}
+ \mathcal U(u)
+ =\frac12\int_0^L EA(u')^2\,dx
+ =\frac12P u(L)
+ =2.5\ \mathrm{J}.
+\end{equation}
+Податливость при фиксированной силе определим как
+\begin{equation}
+\label{eq:bar-compliance-v04}
+ J_{\mathrm{comp}}
+ =P u(L)
+ =\frac{P^2L}{EA}
+ =5.0\ \mathrm{J}.
+\end{equation}
+В точке равновесия потенциальная энергия равна
+\begin{equation}
+\label{eq:bar-potential-v04}
+ \Pi(u)
+ =\mathcal U(u)-Pu(L)
+ =-2.5\ \mathrm{J}.
+\end{equation}
+Получены три согласованные проверки одной задачи: сила и напряжение имеют правильные единицы, слабая форма воспроизводит работу нагрузки, а $J_{\mathrm{comp}}=2\mathcal U$.
+
+\subsection{Матрица жёсткости, податливость и проектный контракт}
+
+После FEM-дискретизации слабая задача принимает вид
+\begin{equation}
+\label{eq:discrete-elasticity-v04}
+ K U=F,
+\end{equation}
+где $U$ содержит узловые перемещения, $F$ --- эквивалентные узловые нагрузки, а
+\begin{equation}
+\label{eq:discrete-potential-v04}
+ \Pi_h(U)
+ =\frac12U^{\trans}KU-F^{\trans}U.
+\end{equation}
+Условие стационарности $\nabla_U\Pi_h=0$ возвращает систему~\eqref{eq:discrete-elasticity-v04}. Для симметричной положительно определённой матрицы
+\begin{equation}
+\label{eq:discrete-compliance-v04}
+ J_{\mathrm{comp}}
+ =F^{\trans}U
+ =U^{\trans}KU
+ =2\mathcal U_h(U).
+\end{equation}
+При одной и той же нагрузке меньшая податливость означает меньшие перемещения и большую глобальную жёсткость. Она не гарантирует малого максимального напряжения, отсутствия потери устойчивости или технологичности конструкции.
+
+\begin{mlconnection}[проверяемый интерфейс физического решателя]
+Параметризация конструкции задаёт конкретную цепочку
+\begin{equation}
+\label{eq:elastic-design-pipeline-v04}
+ \theta
+ \longmapsto
+ \bigl(D,\Gamma_D,\Gamma_N,\mathbb C,f,t_N\bigr)
+ \longmapsto
+ (K(\theta),F(\theta))
+ \longmapsto
+ U(\theta)
+ \longmapsto
+ J_{\mathrm{comp}}(\theta).
+\end{equation}
+Суррогат, предсказывающий $\widehat U$, проверяется не только по ошибке относительно данных, но и по невязке
+\[
+ r_K=K\widehat U-F,
+\]
+выполнению закреплений и согласованности энергий в~\eqref{eq:discrete-compliance-v04}. Генератор геометрии обязан сохранять ненулевую закреплённую границу, путь передачи нагрузки и корректную сетку; иначе $K$ может стать вырожденной ещё до оценки качества конструкции.
+\end{mlconnection}
+
+Податливость удобна для дифференцируемого проектирования, потому что является гладким глобальным функционалом при фиксированной топологии и корректной задаче. Но оптимизация только $J_{\mathrm{comp}}$ склонна переносить материал в основные силовые пути и игнорировать локальные пики напряжения. Поэтому в следующем разделе к глобальной жёсткости будут добавлены критерии прочности, концентрация напряжений и численные ограничения.
+
+\section{Прочность, концентрация напряжений и численные ограничения}
+\label{sec:strength-stress-criteria}
+
+Поле перемещений определяет деформацию, а материальный закон переводит её в тензор напряжений. Однако сама матрица $\sigma(x)$ ещё не отвечает на инженерный вопрос, выдерживает ли конструкция заданную нагрузку. Для этого из тензора извлекают направления наибольшего нормального действия, отделяют гидростатическую часть от изменения формы и строят скалярный критерий, сопоставимый с характеристикой материала.
+
+Такой переход требует осторожности. Линейная упругость вычисляет напряжения до начала необратимого поведения, но не описывает развитие пластической зоны, трещины или разрушения. Поэтому критерии этого раздела являются проверкой допустимости упругого решения, а не самостоятельной моделью разрушения.
+
+\subsection{Главные напряжения и инварианты тензора}
+
+В каждой точке симметричный тензор Коши задаёт линейное отображение
+\[
+ n\longmapsto t(n)=\sigma n.
+\]
+Обычно вектор тяги имеет нормальную и касательную части. Особые направления определяются условием отсутствия касательной составляющей:
+\begin{equation}
+\label{eq:principal-stress-eigenproblem-v05}
+ \sigma n_i=\sigma_i n_i,
+ \qquad
+ \lVert n_i\rVert=1.
+\end{equation}
+Числа $\sigma_i$ называются главными напряжениями, а $n_i$ --- главными направлениями. Это обычная задача на собственные значения симметричной матрицы. Поэтому все $\sigma_i$ вещественны, а главные направления можно выбрать ортонормированными.
+
+Спектральное разложение имеет вид
+\begin{equation}
+\label{eq:stress-spectral-decomposition-v05}
+ \sigma
+ =\sum_{i=1}^{d}\sigma_i n_i\otimes n_i.
+\end{equation}
+В базисе главных направлений матрица напряжений диагональна, а напряжение на площадке с нормалью $n_i$ является чисто нормальным:
+\[
+ t(n_i)=\sigma_i n_i.
+\]
+Это не означает исчезновения сдвига во всём теле. Сдвиг обнуляется только на площадках, нормали которых совпадают с собственными векторами $\sigma$.
+
+Главные напряжения не зависят от поворота координат. То же верно для коэффициентов характеристического многочлена
+\begin{equation}
+\label{eq:stress-characteristic-polynomial-v05}
+ \det(\sigma-\xi I)
+ =-\xi^3+I_1\xi^2-I_2\xi+I_3=0
+\end{equation}
+в трёхмерном случае, где
+\begin{align}
+ I_1&=\operatorname{tr}\sigma,
+ \label{eq:stress-first-invariant-v05}\\
+ I_2&=\frac12\left[
+ (\operatorname{tr}\sigma)^2-\operatorname{tr}(\sigma^2)
+ \right],
+ \label{eq:stress-second-invariant-v05}\\
+ I_3&=\det\sigma.
+ \label{eq:stress-third-invariant-v05}
+\end{align}
+В главном базисе эти инварианты равны
+\[
+ I_1=\sigma_1+\sigma_2+\sigma_3,
+ \qquad
+ I_2=\sigma_1\sigma_2+\sigma_2\sigma_3+\sigma_3\sigma_1,
+ \qquad
+ I_3=\sigma_1\sigma_2\sigma_3.
+\]
+Инвариантность важна для вычислительной модели: физический критерий не должен меняться при повороте детали или системы координат.
+
+\subsection{Девиатор напряжения и эквивалентное напряжение Мизеса}
+
+Тензор напряжений раскладывается на сферическую и бесследовую части:
+\begin{align}
+ p&=\frac1d\operatorname{tr}\sigma,
+ \label{eq:mean-stress-v05}\\
+ \sigma_{\mathrm{vol}}&=pI,
+ \label{eq:volumetric-stress-v05}\\
+ s&=\operatorname{dev}\sigma
+ =\sigma-pI,
+ \qquad
+ \operatorname{tr}s=0.
+ \label{eq:deviatoric-stress-v05}
+\end{align}
+Здесь $p$ называется средним нормальным напряжением. Знак зависит от принятого соглашения: в механике твёрдого тела растяжение обычно считается положительным, поэтому положительное $p$ соответствует всестороннему растяжению. В гидромеханике давление часто вводят с противоположным знаком.
+
+Сферическая часть действует одинаково во всех направлениях и связана с изменением объёма. Девиатор $s$ отвечает за изменение формы. Для изотропной линейной упругости это разделение согласуется с формулами раздела~\ref{sec:linear-isotropic-elasticity}:
+\begin{equation}
+\label{eq:stress-strain-vol-dev-v05}
+ \sigma
+ =K\operatorname{tr}(\varepsilon)I
+ +2\mu\operatorname{dev}\varepsilon.
+\end{equation}
+Первое слагаемое управляется объёмным модулем $K$, второе --- модулем сдвига $\mu$.
+
+Чистое гидростатическое напряжение $\sigma=pI$ имеет ненулевые главные напряжения, но нулевой девиатор. Оно может заметно менять объём, не создавая сдвигового искажения. Напротив, состояние с $\operatorname{tr}\sigma=0$ не содержит средней нормальной части, хотя отдельные главные напряжения могут быть большими.
+
+Второй инвариант девиатора зададим как
+\begin{equation}
+\label{eq:j2-deviatoric-v05}
+ J_2
+ =\frac12 s:s.
+\end{equation}
+Он не меняется при ортогональной замене координат и измеряет интенсивность девиаторного напряжения. Именно эта величина лежит в основе критерия Мизеса.
+
+Для изотропного пластичного материала начало текучести часто связывают с девиаторной частью напряжения. Эквивалентное напряжение Мизеса определяется формулой
+\begin{equation}
+\label{eq:von-mises-deviator-v05}
+ \sigma_{\mathrm{vm}}
+ =\sqrt{3J_2}
+ =\sqrt{\frac32\,s:s}.
+\end{equation}
+Через главные напряжения та же величина записывается как
+\begin{equation}
+\label{eq:von-mises-principal-v05}
+ \sigma_{\mathrm{vm}}
+ =\sqrt{
+ \frac12\left[
+ (\sigma_1-\sigma_2)^2
+ +(\sigma_2-\sigma_3)^2
+ +(\sigma_3-\sigma_1)^2
+ \right]
+ }.
+\end{equation}
+В декартовых компонентах
+\begin{align}
+ \sigma_{\mathrm{vm}}^2
+ &=\frac12\left[
+ (\sigma_{11}-\sigma_{22})^2
+ +(\sigma_{22}-\sigma_{33})^2
+ +(\sigma_{33}-\sigma_{11})^2
+ \right]
+ \notag\\
+ &\quad
+ +3\left(\sigma_{12}^2+\sigma_{23}^2+\sigma_{31}^2\right).
+ \label{eq:von-mises-components-v05}
+\end{align}
+
+Если $\sigma_y$ --- предел текучести при одноосном растяжении, упругая проверка имеет вид
+\begin{equation}
+\label{eq:von-mises-yield-check-v05}
+ \sigma_{\mathrm{vm}}(x)\le \sigma_y.
+\end{equation}
+Коэффициент использования и формальный запас можно определить как
+\begin{equation}
+\label{eq:utilization-safety-v05}
+ \eta(x)=\frac{\sigma_{\mathrm{vm}}(x)}{\sigma_y},
+ \qquad
+ n_s(x)=\frac1{\eta(x)}.
+\end{equation}
+Такая запись полезна только при согласованных единицах, температуре, состоянии материала и способе задания $\sigma_y$.
+
+Критерий Мизеса не чувствителен к добавлению гидростатической части:
+\[
+ \operatorname{dev}(\sigma+p_0I)=\operatorname{dev}\sigma.
+\]
+Поэтому он естественен для многих пластичных металлов, где начало текучести определяется сдвиговым искажением. Для хрупкого разрушения, композитов, грунтов, пористых материалов и задач с существенной зависимостью от давления одного $\sigma_{\mathrm{vm}}$ недостаточно. Критерий также не описывает накопление пластической деформации: после нарушения~\eqref{eq:von-mises-yield-check-v05} линейно-упругое решение выходит за границу своей модели.
+
+\subsection{Концентрация напряжений и зависимость от сетки}
+
+Глобальная податливость усредняет поведение всей конструкции, а прочность часто определяется небольшой областью. Отверстие, острый внутренний угол, резкое изменение толщины или точечное приложение нагрузки нарушают равномерность силового потока и создают концентрацию напряжений.
+
+Для гладкой геометрии коэффициент концентрации можно определить как
+\begin{equation}
+\label{eq:stress-concentration-factor-v05}
+ K_t
+ =\frac{\sigma_{\max}}{\sigma_{\mathrm{nom}}},
+\end{equation}
+где $\sigma_{\mathrm{nom}}$ вычисляется по упрощённой формуле для удалённого сечения, а $\sigma_{\max}$ --- локальный максимум выбранной компоненты или эквивалентного напряжения. Число $K_t$ зависит от геометрии, вида нагрузки и того, какая именно величина стоит в числителе.
+
+В FEM локальный максимум нельзя интерпретировать без анализа сходимости. Если скругление имеет конечный радиус и сетка его разрешает, последовательное сгущение должно приводить к стабилизации напряжения в физически фиксированной точке или области. Если же модель содержит идеальный острый входящий угол, трещину, точечную силу или скачок граничных условий, непрерывная задача может иметь сингулярное напряжение. Тогда максимальное узловое или элементное значение растёт при сгущении сетки и не является сходящейся характеристикой конструкции.
+
+Практическая проверка должна фиксировать не только число $\max\sigma_{\mathrm{vm}}$, но и способ его получения. Сравниваются несколько сеток, геометрия скруглений, область усреднения и положение точки оценки. Для сингулярной модели используют интегральные характеристики, напряжение на заданном расстоянии от особенности или специальную механику разрушения. Последняя выходит за рамки этой главы.
+
+Это ограничение особенно важно для обучения суррогата. Если целевой максимум получен на разных сетках или при различной регуляризации угла, одинаковая геометрия может иметь несовместимые метки. Нейросеть в таком наборе учит не только физику, но и скрытый выбор дискретизации.
+
+\subsection{Почти несжимаемый материал и объёмный locking}
+
+Для трёхмерной изотропной упругости
+\begin{equation}
+\label{eq:lame-near-incompressible-v05}
+ \lambda
+ =\frac{E\nu}{(1+\nu)(1-2\nu)}.
+\end{equation}
+При $\nu\to 1/2$ модуль сдвига остаётся конечным, а $\lambda\to\infty$. Из закона Гука следует, что конечная энергия требует
+\begin{equation}
+\label{eq:near-incompressibility-constraint-v05}
+ \operatorname{tr}\varepsilon(u)
+ =\operatorname{div}u
+ \approx 0.
+\end{equation}
+Материал почти не меняет объём, но может менять форму.
+
+Стандартное пространство линейных конечных элементов по перемещениям может слишком жёстко навязать условие~\eqref{eq:near-incompressibility-constraint-v05}. Если в дискретном пространстве мало ненулевых полей с почти нулевой дивергенцией, численное решение становится искусственно жёстким: перемещения занижаются, а ошибка растёт при увеличении $\lambda$. Это явление называется объёмным locking.
+
+Locking является ошибкой дискретизации, а не физическим усилением материала. Простое сгущение одной и той же неподходящей схемы может быть крайне неэффективным. Один из устойчивых подходов вводит дополнительную переменную
+\begin{equation}
+\label{eq:elastic-pressure-v05}
+ p=\lambda\operatorname{div}u
+\end{equation}
+и использует смешанную постановку по перемещению и давлению:
+\begin{align}
+ 2\mu(\varepsilon(u),\varepsilon(v))
+ +(p,\operatorname{div}v)
+ &=(f,v),
+ \label{eq:mixed-elasticity-momentum-v05}\\
+ (\operatorname{div}u,q)
+ -\frac1\lambda(p,q)
+ &=0.
+ \label{eq:mixed-elasticity-constraint-v05}
+\end{align}
+Дискретные пространства для $u$ и $p$ должны удовлетворять условию устойчивости типа inf--sup. Иначе дополнительная переменная сама создаёт паразитные моды.
+
+Следовательно, при $\nu$ близком к $1/2$ недостаточно передать решателю только $E$ и $\nu$. Нужно также указать тип конечных элементов, смешанную или чисто перемещенческую постановку и продемонстрировать устойчивость результата по сетке и по параметру $\nu$.
+
+\subsection{Законченный расчёт главных и эквивалентного напряжений}
+\label{subsec:worked-von-mises-v05}
+
+Рассмотрим трёхмерное напряжённое состояние, измеряемое в мегапаскалях:
+\begin{equation}
+\label{eq:worked-stress-tensor-v05}
+ \sigma
+ =
+ \begin{pmatrix}
+ 120&40&0\\
+ 40&60&0\\
+ 0&0&30
+ \end{pmatrix}
+ \ \mathrm{MPa}.
+\end{equation}
+Матрица симметрична, поэтому соответствует балансу углового момента в классической модели.
+
+Третье координатное направление уже является главным:
+\[
+ \sigma_3=30\ \mathrm{MPa},
+ \qquad
+ n_3=(0,0,1)^{\trans}.
+\]
+Для плоского блока первые два собственных значения равны
+\begin{align}
+ \sigma_{1,2}
+ &=\frac{120+60}{2}
+ \pm
+ \sqrt{
+ \left(\frac{120-60}{2}\right)^2+40^2
+ }
+ \notag\\
+ &=90\pm 50.
+ \label{eq:worked-principal-stresses-v05}
+\end{align}
+Следовательно,
+\begin{equation}
+\label{eq:worked-principal-values-v05}
+ \sigma_1=140\ \mathrm{MPa},
+ \qquad
+ \sigma_2=40\ \mathrm{MPa},
+ \qquad
+ \sigma_3=30\ \mathrm{MPa}.
+\end{equation}
+Угол первого главного направления в плоскости удовлетворяет
+\begin{equation}
+\label{eq:worked-principal-angle-v05}
+ \tan 2\theta
+ =\frac{2\sigma_{12}}{\sigma_{11}-\sigma_{22}}
+ =\frac{80}{60}
+ =\frac43,
+\end{equation}
+откуда $\theta\approx26.565^\circ$.
+
+Среднее напряжение составляет
+\begin{equation}
+\label{eq:worked-mean-stress-v05}
+ p
+ =\frac{120+60+30}{3}
+ =70\ \mathrm{MPa}.
+\end{equation}
+Девиатор равен
+\begin{equation}
+\label{eq:worked-deviator-v05}
+ s
+ =\sigma-pI
+ =
+ \begin{pmatrix}
+ 50&40&0\\
+ 40&-10&0\\
+ 0&0&-40
+ \end{pmatrix}
+ \ \mathrm{MPa},
+ \qquad
+ \operatorname{tr}s=0.
+\end{equation}
+Его двойное скалярное произведение учитывает обе симметричные внедиагональные компоненты:
+\begin{align}
+ s:s
+ &=50^2+(-10)^2+(-40)^2+2\cdot40^2
+ \notag\\
+ &=7400\ \mathrm{MPa}^2.
+ \label{eq:worked-deviator-norm-v05}
+\end{align}
+Поэтому
+\begin{equation}
+\label{eq:worked-von-mises-v05}
+ \sigma_{\mathrm{vm}}
+ =\sqrt{\frac32\,7400}
+ =\sqrt{11100}
+ \approx105.36\ \mathrm{MPa}.
+\end{equation}
+Проверка по главным напряжениям даёт то же число:
+\begin{align}
+ \sigma_{\mathrm{vm}}
+ &=\sqrt{\frac12\left[
+ (140-40)^2+(40-30)^2+(30-140)^2
+ \right]}
+ \notag\\
+ &\approx105.36\ \mathrm{MPa}.
+ \label{eq:worked-von-mises-principal-check-v05}
+\end{align}
+
+Пусть предел текучести равен $\sigma_y=250\ \mathrm{MPa}$. Тогда
+\begin{equation}
+\label{eq:worked-utilization-v05}
+ \eta
+ =\frac{105.36}{250}
+ \approx0.421,
+ \qquad
+ n_s\approx2.37.
+\end{equation}
+В рамках выбранного критерия точка остаётся в упругой области. Этот вывод локален: он не проверяет потерю устойчивости, усталость, хрупкое разрушение и напряжения в других точках конструкции.
+
+\subsection{Критерии проекта и вычислительный контракт}
+
+Для одной расчётной конфигурации полезно различать три класса выходов. Поле $u$ определяет геометрический отклик, податливость $J_{\mathrm{comp}}=F^{\trans}U$ измеряет глобальную жёсткость, а $\sigma_{\mathrm{vm}}(x)$ задаёт локальную проверку текучести. Ни одна из этих величин не заменяет остальные.
+
+Прямое ограничение
+\begin{equation}
+\label{eq:max-von-mises-constraint-v05}
+ \max_{x\in D}\sigma_{\mathrm{vm}}(x)
+ \le\sigma_{\mathrm{allow}}
+\end{equation}
+неудобно для градиентной оптимизации: максимум негладок при смене активной точки и чувствителен к локальной дискретизации. На фиксированной сетке его можно приблизить $p$-нормой
+\begin{equation}
+\label{eq:pnorm-stress-aggregation-v05}
+ S_p
+ =\left(
+ \frac1{|D|}
+ \int_D
+ \left(
+ \frac{\sigma_{\mathrm{vm}}(x)}{\sigma_{\mathrm{allow}}}
+ \right)^p dx
+ \right)^{1/p},
+\end{equation}
+где большое $p$ усиливает вклад горячих областей. Такая агрегация сглаживает максимум, но не устраняет зависимость от сетки и не гарантирует точного контроля единичного пика.
+
+\begin{mlconnection}[что должно быть зафиксировано в данных]
+Для пары «конструкция--нагрузка» обучающий пример должен содержать не только геометрию и скалярную метку. Минимальный физический контракт имеет вид
+\begin{equation}
+\label{eq:stress-learning-contract-v05}
+ (D,\Gamma_D,\Gamma_N,\mathbb C,f,t_N,\mathcal T_h)
+ \longmapsto
+ (U_h,\sigma_h,\sigma_{\mathrm{vm},h},J_{\mathrm{comp},h}),
+\end{equation}
+где $\mathcal T_h$ обозначает сетку и тип дискретизации. Без неё локальные напряжения нельзя однозначно интерпретировать. Суррогат проверяется по невязке равновесия, закреплениям, симметрии $\sigma$, согласованности закона материала и ошибке именно в областях концентрации, а не только по средней норме поля.
+\end{mlconnection}
+
+Генеративная модель может уменьшить податливость и одновременно создать тонкую перемычку с большим $\sigma_{\mathrm{vm}}$. Она может также сформировать острый угол, для которого дискретный максимум не имеет устойчивого физического смысла. Поэтому пригодность проекта требует совместной проверки жёсткости, локальной прочности, корректности геометрии и сходимости численного решения. В следующем разделе эта цепочка будет сделана дифференцируемой по параметрам материала и формы.
+
+\section{Параметризованная конструкция и связь с обучаемыми моделями}
+\label{sec:parametric-elastic-design}
+\subsection{От проектного параметра к физическому критерию}
+Пусть проект задаётся вектором $\theta\in\Theta\subset\R^p$. Его компоненты могут определять толщины, размеры отверстий, параметры материала или значения некоторого поля. После выбора геометрии, закреплений и нагрузки статическая задача линейной упругости принимает дискретный вид
+\begin{equation}
+\label{eq:parametric-elastic-system-v06}
+ K(\theta)U(\theta)=F(\theta).
+\end{equation}
+Вектор $U$ содержит узловые перемещения. По нему восстанавливаются деформации, напряжения и скалярный критерий
+\begin{equation}
+\label{eq:parametric-elastic-objective-v06}
+ j(\theta)=J\bigl(U(\theta),\theta\bigr).
+\end{equation}
+Тем самым проект не оценивается непосредственно по картинке или набору координат. Между параметром и качеством стоит физическое отображение
+\begin{equation}
+\label{eq:elastic-design-chain-v06}
+ \theta
+ \longmapsto
+ (D,\mathbb C,\Gamma_D,\Gamma_N,f,t_N)
+ \longmapsto
+ K(\theta)U=F(\theta)
+ \longmapsto
+ (u,\varepsilon,\sigma)
+ \longmapsto
+ j.
+\end{equation}
+Для генератора с латентным кодом $z$ эта цепочка может начинаться с материального поля
+\begin{equation}
+\label{eq:latent-to-physics-chain-v06}
+ z
+ \longmapsto
+ \rho(x;z)
+ \longmapsto
+ \mathbb C\bigl(\rho(x;z)\bigr)
+ \longmapsto
+ K(\rho)U=F
+ \longmapsto
+ J(U,\rho).
+\end{equation}
+Каждая стрелка должна иметь определённый смысл. Поле $\rho$ не является напряжением или жёсткостью само по себе: необходим закон, переводящий его в тензор материала $\mathbb C$. Равным образом скаляр $J$ должен быть вычислен по решению задачи, а не предсказан из внешнего вида конструкции без проверки.
+В этой главе рассматривается фиксированная сетка и гладкая зависимость коэффициентов от параметров. Изменение связности сетки, появление контакта и разрывное удаление элементов могут нарушить дифференцируемость. Полные алгоритмы изменения топологии относятся к главе о генеративном проектировании.
+\subsection{Поле материала, жёсткость и ограничение объёма}
+На сетке $\mathcal T_h$ поле материала удобно задавать значениями
+\[
+ \rho_e\in[\rho_{\min},1]
+\]
+на элементах $T_e$. Нижняя граница $\rho_{\min}>0$ предотвращает точную потерю жёсткости и вырождение матрицы, но одновременно означает, что ``пустая'' область всё ещё содержит слабый численный материал.
+Пусть элементная матрица имеет вид
+\begin{equation}
+\label{eq:density-element-stiffness-v06}
+ K_e(\rho_e)=\alpha(\rho_e)K_e^0,
+\end{equation}
+где $K_e^0$ соответствует базовому упругому материалу, а $\alpha$ --- выбранный закон интерполяции. Тогда глобальная матрица собирается как
+\begin{equation}
+\label{eq:density-global-stiffness-v06}
+ K(\rho)=\sum_e A_e^{\trans}K_e(\rho_e)A_e,
+\end{equation}
+где $A_e$ извлекает локальные степени свободы из глобального вектора.
+Простейшая гладкая степенная зависимость записывается в форме
+\begin{equation}
+\label{eq:power-material-interpolation-v06}
+ \alpha(\rho)
+ =\alpha_{\min}
+ +(1-\alpha_{\min})\rho^q,
+ \qquad q\ge1.
+\end{equation}
+При $q>1$ промежуточные значения материала дают меньшую жёсткость, чем линейная смесь. Это вычислительный выбор, а не универсальный физический закон. Его нельзя без проверки переносить на композит, пористый материал или изготовленную микроструктуру.
+Объём материала на фиксированной сетке аппроксимируется функционалом
+\begin{equation}
+\label{eq:discrete-material-volume-v06}
+ V(\rho)=\sum_e \rho_e|T_e|.
+\end{equation}
+Типичная постановка ограничивает $V(\rho)\le V_{\max}$ и минимизирует податливость. Однако малая податливость означает только высокую глобальную жёсткость для заданной нагрузки. Она не гарантирует допустимых напряжений, устойчивости, связности и изготовимости.
+\subsection{Производная податливости по параметру жёсткости}
+Пусть нагрузка фиксирована, $K(\theta)$ симметрична, а
+\begin{equation}
+\label{eq:compliance-definition-v06}
+ J_{\mathrm{comp}}(\theta)=F^{\trans}U(\theta),
+ \qquad
+ K(\theta)U(\theta)=F.
+\end{equation}
+Дифференцирование уравнения равновесия даёт
+\begin{equation}
+\label{eq:elastic-state-sensitivity-v06}
+ K\pdv{U}{\theta_i}
+ =-
+ \pdv{K}{\theta_i}U.
+\end{equation}
+Поэтому
+\begin{align}
+ \pdv{J_{\mathrm{comp}}}{\theta_i}
+ &=F^{\trans}\pdv{U}{\theta_i}
+ =U^{\trans}K\pdv{U}{\theta_i}
+ \notag\\
+ &=-U^{\trans}\pdv{K}{\theta_i}U.
+\label{eq:elastic-compliance-gradient-v06}
+\end{align}
+Это частный случай сопряжённой формулы из главы~\ref{chap:partial-differential-equations}: для податливости сопряжённое состояние совпадает с прямым перемещением.
+Для параметризации~\eqref{eq:density-element-stiffness-v06} локальная производная равна
+\begin{equation}
+\label{eq:element-compliance-gradient-v06}
+ \pdv{J_{\mathrm{comp}}}{\rho_e}
+ =-
+ \alpha'(\rho_e)
+ U_e^{\trans}K_e^0U_e.
+\end{equation}
+Квадратичная форма $U_e^{\trans}K_e^0U_e$ пропорциональна энергии деформации элемента. Чем она больше, тем сильнее увеличение локальной жёсткости уменьшает податливость. Формула не говорит, что материал нужно безусловно добавлять в точке с максимальной энергией: одновременно действует ограничение объёма, а также могут присутствовать ограничения по напряжению и геометрии.
+
+Градиент корректен только для той дискретной модели, в которой он выведен. Если после каждого шага меняется сетка, используется пороговое удаление элементов или решатель останавливается с большой невязкой, конечная производная может не соответствовать фактическому изменению критерия.
+
+\subsection{Законченный расчёт чувствительности двухэлементного стержня}
+\label{subsec:worked-compliance-sensitivity-v06}
+
+Рассмотрим два последовательно соединённых стержневых элемента одинаковой длины и площади:
+\[
+ L_1=L_2=1\ \mathrm{m},
+ \qquad
+ A=10^{-4}\ \mathrm{m}^2.
+\]
+Левый конец закреплён, к правому приложена сила
+\[
+ P=10\ \mathrm{kN}.
+\]
+Базовый модуль Юнга равен $E_0=200\ \mathrm{GPa}$, а эффективный модуль элемента задаётся
+\begin{equation}
+\label{eq:worked-density-modulus-v06}
+ E_e(\rho_e)=E_0\rho_e^3.
+\end{equation}
+
+При последовательном соединении сила в обоих элементах равна $P$, поэтому полное перемещение нагруженного конца составляет
+\begin{equation}
+\label{eq:worked-series-displacement-v06}
+ \delta
+ =\sum_{e=1}^2\frac{PL_e}{AE_e}
+ =\frac{P}{AE_0}
+ \left(\rho_1^{-3}+\rho_2^{-3}\right).
+\end{equation}
+Податливость равна работе внешней силы:
+\begin{equation}
+\label{eq:worked-series-compliance-v06}
+ J_{\mathrm{comp}}
+ =P\delta
+ =\frac{P^2}{AE_0}
+ \left(\rho_1^{-3}+\rho_2^{-3}\right).
+\end{equation}
+Численный коэффициент равен
+\[
+ \frac{P^2}{AE_0}
+ =\frac{(10^4)^2}{10^{-4}\cdot2\cdot10^{11}}
+ =5\ \mathrm{J}.
+\]
+
+Пусть $\rho_1=1$ и $\rho_2=0.8$. Тогда относительный объём равен
+\begin{equation}
+\label{eq:worked-relative-volume-v06}
+ \frac{V(\rho)}{V_0}
+ =\frac{\rho_1+\rho_2}{2}
+ =0.9,
+\end{equation}
+а податливость составляет
+\begin{align}
+ J_{\mathrm{comp}}
+ &=5\left(1+0.8^{-3}\right)
+ \notag\\
+ &=5(1+1.953125)
+ =14.765625\ \mathrm{J}.
+\label{eq:worked-compliance-value-v06}
+\end{align}
+Соответствующее перемещение равно
+\begin{equation}
+\label{eq:worked-end-displacement-v06}
+ \delta=\frac{J_{\mathrm{comp}}}{P}
+ =1.4765625\cdot10^{-3}\ \mathrm{m}
+ \approx1.477\ \mathrm{mm}.
+\end{equation}
+
+Дифференцируя~\eqref{eq:worked-series-compliance-v06}, получаем
+\begin{equation}
+\label{eq:worked-compliance-derivative-v06}
+ \pdv{J_{\mathrm{comp}}}{\rho_e}
+ =-15\rho_e^{-4}\ \mathrm{J}.
+\end{equation}
+Следовательно,
+\begin{equation}
+\label{eq:worked-compliance-gradient-values-v06}
+ \pdv{J_{\mathrm{comp}}}{\rho_1}
+ =-15\ \mathrm{J},
+ \qquad
+ \pdv{J_{\mathrm{comp}}}{\rho_2}
+ =-36.6211\ \mathrm{J}.
+\end{equation}
+При одинаковом малом добавлении материала податливость сильнее уменьшается во втором, более слабом элементе. Отрицательный знак согласуется с формулой~\eqref{eq:elastic-compliance-gradient-v06}: увеличение жёсткости уменьшает перемещение под заданной силой.
+
+Расчёт не является готовым алгоритмом проектирования. Он не учитывает минимальный размер детали, локальную прочность и способ изготовления, а степенной закон~\eqref{eq:worked-density-modulus-v06} выбран как параметризация, а не получен из эксперимента над реальным пористым материалом.
+
+\subsection{Три роли машинного обучения в механической модели}
+
+Первая роль --- суррогат прямого решателя. Его вход должен содержать не только геометрию, но и материальные параметры, нагрузки и граничные условия:
+\begin{equation}
+\label{eq:elastic-surrogate-contract-v06}
+ (\theta,f,t_N,\Gamma_D,\Gamma_N,\mathcal T_h)
+ \longmapsto
+ (U_h,\sigma_h,J_h).
+\end{equation}
+Точность проверяется по полям и функционалам, а также по равновесию, закреплениям и закону материала. Небольшая средняя ошибка перемещений не исключает большой ошибки напряжения около отверстия или скругления.
+
+Вторая роль --- обучаемый материальный закон. В малодеформационной модели он имеет локальный интерфейс
+\begin{equation}
+\label{eq:learned-constitutive-contract-v06}
+ (\varepsilon,m)
+ \longmapsto
+ \sigma,
+\end{equation}
+где $m$ описывает материал или микроструктуру. Выход должен быть симметричным, согласованным с единицами и не создавать отрицательной упругой энергии в области применимости. Произвольный регрессор может хорошо интерполировать таблицу, но нарушить эти свойства между наблюдениями.
+
+Третья роль --- обратная задача. По измерениям перемещения $y$ можно восстанавливать поле модуля или параметры дефекта:
+\begin{equation}
+\label{eq:elastic-inverse-problem-v06}
+ \min_{\theta}
+ \frac12\norm{H U(\theta)-y}_{W}^2
+ +R(\theta),
+ \qquad
+ K(\theta)U(\theta)=F.
+\end{equation}
+Оператор $H$ выбирает наблюдаемые точки или компоненты, а $R$ задаёт регуляризацию. Даже точное совпадение измерений не гарантирует единственности: разные распределения жёсткости могут давать почти одинаковые перемещения при одной нагрузке. Поэтому нужны несколько режимов нагружения, априорные ограничения или независимые данные.
+
+Для задач, близких к направлениям AIRI и Сбера, этот контракт задаёт физическую часть цифрового двойника: параметры $\theta$ определяют геометрию или материал, измерения $y$ корректируют модель, а независимое решение $K(\theta)U=F$ проверяет предсказание. Это не утверждение о конкретной внутренней разработке, а указание на тип задач --- связь структуры, свойств и измеряемого отклика.
+
+Архитектуры суррогатов, физически информированные потери и операторное обучение рассматриваются отдельно. Здесь фиксируется механический контракт: какие величины входят в модель, каким уравнением они связаны и что именно должно проверяться после предсказания.
+
+\subsection{Границы применимости и переход к генеративному проектированию}
+
+Полученная цепочка соединяет геометрию, материал и вычислимый градиент:
+\[
+ \text{проект}
+ \longrightarrow
+ \varepsilon(u)
+ \longrightarrow
+ \sigma
+ \longrightarrow
+ K(\theta)U=F
+ \longrightarrow
+ J
+ \longrightarrow
+ \nabla_\theta J.
+\]
+Она применима, пока деформации и вращения малы, материал остаётся линейно-упругим, а статическое равновесие является адекватной моделью. Пластичность, разрушение, контакт, потеря устойчивости и конечные деформации требуют других уравнений и других производных.
+
+Низкая податливость не означает достаточной прочности. Малое напряжение в линейном расчёте не гарантирует устойчивости тонкой стенки. Гладкое поле плотности не гарантирует связной или изготавливаемой геометрии. Локальный максимум напряжения может меняться при сгущении сетки, а почти несжимаемый материал может вызвать locking неподходящего конечного элемента.
+
+Суррогат особенно опасен вне обучающего диапазона. Он может выдать гладкое и визуально правдоподобное поле, нарушающее баланс сил или материальный закон. Генератор может создать разорванную конструкцию, тонкие перемычки или геометрию, которую невозможно корректно сетить. Поэтому финальная проверка кандидата должна выполняться независимым физическим решателем с контролем сетки и области применимости.
+
+Глава завершает физическую специализацию общей PDE-схемы. Следующий уровень состоит не в добавлении ещё одного рекламного ``ML-блока'', а в строгом выборе обучаемого отображения: суррогата решения, модели материала, обратного оператора или генератора проекта. Алгоритмы, которые строят такие отображения, должны сохранять разделение между параметризацией, механическим уравнением, дискретизацией и критерием качества.

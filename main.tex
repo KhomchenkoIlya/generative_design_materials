@@ -1,0 +1,132 @@
+\documentclass[12pt,a4paper,oneside]{book}
+
+\input{preamble}
+
+\begin{document}
+\selectlanguage{russian}
+
+% =============================================================================
+% Обложка
+% =============================================================================
+
+\newgeometry{margin=0pt}
+\thispagestyle{empty}
+
+\noindent
+\makebox[\paperwidth][c]{%
+    \includegraphics[
+        width=\paperwidth,
+        height=\paperheight,
+        keepaspectratio
+    ]{figures/cover.png}%
+}
+
+\clearpage
+\restoregeometry
+
+% =============================================================================
+% Титульный лист
+% =============================================================================
+
+\begin{titlepage}
+\thispagestyle{empty}
+
+\begin{center}
+\vspace*{1.1cm}
+
+{\large\bfseries
+Московский физико-технический институт\par}
+
+\vspace{0.3cm}
+
+{\large
+Физтех-школа прикладной математики и информатики\par}
+
+\vspace{1.6cm}
+
+\rule{0.9\textwidth}{0.8pt}
+
+\vspace{0.5cm}
+
+{\Huge\bfseries СКРЫТАЯ ИМБА\par}
+
+\vspace{0.35cm}
+
+{\Large Прикладной математический конспект\par}
+
+\vspace{0.25cm}
+
+{\large
+для исследований в области генеративного проектирования\par}
+
+\vspace{0.5cm}
+
+\rule{0.9\textwidth}{0.8pt}
+
+\vfill
+
+{\large\bfseries Авторы\par}
+
+\vspace{0.35cm}
+
+\rule{0.55\textwidth}{0.4pt}
+
+\vspace{0.3cm}
+
+{\Large Хомченко Илья\par}
+
+\vspace{0.2cm}
+
+{\Large Шелегеда Наталья\par}
+
+\vspace{0.3cm}
+
+\rule{0.55\textwidth}{0.4pt}
+
+\vfill
+
+{\large Москва\par}
+
+\vspace{0.1cm}
+
+{\large 2026\par}
+
+\end{center}
+\end{titlepage}
+
+% =============================================================================
+% Вводная часть
+% =============================================================================
+
+\frontmatter
+
+\input{sections/00_abstract}
+
+% BEGIN HIDDENPOWER COMPACT TOC
+\begingroup
+  \small
+  \setlength{\emergencystretch}{4em}%
+  \sloppy
+  \tableofcontents
+\endgroup
+% END HIDDENPOWER COMPACT TOC
+\clearpage
+
+% =============================================================================
+% Основная часть
+% =============================================================================
+
+\mainmatter
+
+\input{sections/01_linear_algebra}
+\input{sections/02_multivariable_calculus}
+\input{sections/03_manifolds_and_differential_geometry}
+\input{sections/04_dynamics_and_differentiable_models}
+\input{sections/05_stochastic_differential_equations}
+\input{sections/06_partial_differential_equations}
+\input{sections/07_mathematical_physics}
+\input{sections/08_connections_to_machine_learning}
+\input{sections/09_generative_design}
+\input{sections/10_practical_projects}
+
+\end{document}

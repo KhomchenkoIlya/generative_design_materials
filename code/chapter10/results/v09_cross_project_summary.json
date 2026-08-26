@@ -1,0 +1,67 @@
+{
+  "cross_project_conclusion": {
+    "diffusion_is_direct_design_solver": false,
+    "diffusion_warm_start_effect_is_large": false,
+    "diffusion_warm_start_effect_is_mixed_but_nonzero": true,
+    "exact_fem_is_final_authority": true,
+    "fno_is_final_solver": false,
+    "fno_useful_for_screening": true,
+    "physics_reentry_is_required_after_ml": true
+  },
+  "git_head_before_v09": "a718fe307be0ef77da0219b6997c2ddf0a908489",
+  "project1": {
+    "cantilever_compliance_reduction": 0.8736252154346146,
+    "cantilever_final_compliance": 233.55003857920076,
+    "cantilever_initial_compliance": 1848.074672351774,
+    "cantilever_iterations": 77,
+    "cantilever_runtime_seconds": 12.440903834998608,
+    "conclusion": "Reference route: exact FEM supplies every objective and SIMP performs the actual optimization.",
+    "method": "FEM+SIMP"
+  },
+  "project2": {
+    "best_snapshot_matches": 4,
+    "best_snapshot_total": 5,
+    "method": "FNO surrogate",
+    "pairwise_compliance_ordering": 0.9466666666666667,
+    "resolution_transfer_192x64_field_error": 0.35947471857070923,
+    "role": "screening_surrogate_not_final_solver",
+    "single_sample_fem_over_fno": 5.269489675236781,
+    "test_compliance_relative_error_median": 0.07325000657690084,
+    "test_field_relative_l2_median": 0.03680270351469517,
+    "test_physics_residual_median": 64.50223294399429,
+    "training_seconds": 1468.8378810590002
+  },
+  "project3": {
+    "condition_count": 5,
+    "ddpm_diversity_median": 0.03545969021887096,
+    "ddpm_training_seconds": 572.7900058399973,
+    "diffusion_better_uniform30_count": 3,
+    "generated_binarity_median": 0.9599078676078376,
+    "median_refined_over_generated": 0.18589509486988598,
+    "median_refined_over_terminal": 1.0167669997223399,
+    "median_refined_over_uniform30": 0.997978842097164,
+    "median_rms_density_change": 0.40448821033974963,
+    "median_uniform30_over_terminal": 1.0216909145057829,
+    "method": "conditional DDPM + exact FEM + fixed-budget SIMP",
+    "raw_volume_error_median": 0.03899151086807251,
+    "refined_binarity_median": 0.21738327775244293,
+    "role": "candidate_generator_with_modest_warmstart_effect",
+    "screen_connected_count": 6,
+    "screen_connected_fraction": 0.075,
+    "screen_total": 80,
+    "selected_connected_after": 20,
+    "selected_connected_before": 2,
+    "selected_count": 20,
+    "terminal_binarity_median": 0.20461766926311634,
+    "terminal_binarity_reference_v07": 0.267765752201971,
+    "v08_runtime_seconds": 115.3753591679997
+  },
+  "scope_guardrails": {
+    "all_final_engineering_comparisons_use_exact_fem": true,
+    "diffusion_advantage_not_claimed_as_universal": true,
+    "five_test_conditions_do_not_identify_causal_parameter_effects": true,
+    "fno_resolution_invariance_not_claimed": true,
+    "fno_timing_is_cpu_wall_clock_not_complexity": true
+  },
+  "stage": "V09"
+}

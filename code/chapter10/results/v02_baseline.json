@@ -1,0 +1,50 @@
+{
+  "cases": {
+    "cantilever": {
+      "compliance": 118.27678076219223,
+      "energy_identity_error": 1.1164259050908037e-12,
+      "fixed_dofs": 66,
+      "force_balance_error": 1.511435972514944e-11,
+      "free_dofs": 6336,
+      "max_abs_displacement": 118.27678076219223,
+      "name": "cantilever",
+      "relative_residual": 1.979635254446612e-12,
+      "strain_energy": 59.13839038103009,
+      "volume_fraction_reserved_for_v03": 0.4
+    },
+    "half_mbb": {
+      "compliance": 127.57269097889238,
+      "energy_identity_error": 1.934916826704708e-13,
+      "fixed_dofs": 34,
+      "force_balance_error": 2.6950713941157305e-11,
+      "free_dofs": 6368,
+      "max_abs_displacement": 127.57269097889238,
+      "name": "half_mbb",
+      "relative_residual": 2.779712129327578e-12,
+      "strain_energy": 63.78634548945853,
+      "volume_fraction_reserved_for_v03": 0.4
+    }
+  },
+  "material": {
+    "poisson": 0.3,
+    "thickness": 1.0,
+    "young": 1.0
+  },
+  "matrix": {
+    "nnz": 105928,
+    "symmetry_error": 0.0
+  },
+  "mesh": {
+    "dofs": 6402,
+    "elements": 3072,
+    "height": 1.0,
+    "hx": 0.03125,
+    "hy": 0.03125,
+    "length": 3.0,
+    "nelx": 96,
+    "nely": 32,
+    "nodes": 3201
+  },
+  "model": "2D linear elasticity, plane stress, Q4, 2x2 Gauss",
+  "stage": "V02"
+}

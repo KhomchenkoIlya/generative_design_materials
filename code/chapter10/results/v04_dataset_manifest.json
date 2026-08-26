@@ -1,0 +1,174 @@
+{
+  "arrays": {
+    "compliance": {
+      "dtype": "float32",
+      "shape": [
+        162
+      ]
+    },
+    "condition": {
+      "dtype": "float32",
+      "shape": [
+        162,
+        4
+      ]
+    },
+    "condition_id": {
+      "dtype": "int16",
+      "shape": [
+        162
+      ]
+    },
+    "displacement": {
+      "dtype": "float32",
+      "shape": [
+        162,
+        2,
+        33,
+        97
+      ]
+    },
+    "fixed_mask": {
+      "dtype": "float32",
+      "shape": [
+        2,
+        33,
+        97
+      ]
+    },
+    "force": {
+      "dtype": "float32",
+      "shape": [
+        162,
+        2,
+        33,
+        97
+      ]
+    },
+    "iteration": {
+      "dtype": "int16",
+      "shape": [
+        162
+      ]
+    },
+    "progress": {
+      "dtype": "float32",
+      "shape": [
+        162
+      ]
+    },
+    "relative_residual": {
+      "dtype": "float64",
+      "shape": [
+        162
+      ]
+    },
+    "rho_element": {
+      "dtype": "float32",
+      "shape": [
+        162,
+        32,
+        96
+      ]
+    },
+    "rho_node": {
+      "dtype": "float32",
+      "shape": [
+        162,
+        33,
+        97
+      ]
+    },
+    "snapshot_rank": {
+      "dtype": "uint8",
+      "shape": [
+        162
+      ]
+    },
+    "split": {
+      "dtype": "uint8",
+      "shape": [
+        162
+      ]
+    }
+  },
+  "condition_grid": {
+    "load_angle_deg": [
+      -105.0,
+      -90.0,
+      -75.0
+    ],
+    "load_y_fraction": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "number_of_conditions": 27,
+    "target_volume": [
+      0.3,
+      0.4,
+      0.5
+    ]
+  },
+  "dataset_bytes": 5598791,
+  "dataset_file": "code/chapter10/data/v04_operator_dataset.npz",
+  "dataset_schema": 1,
+  "dataset_sha256": "eeace8c3e22dd1ce0d3cb52bc05c021588a948b02e2c74afc84545407f547385",
+  "mesh": {
+    "nelx": 96,
+    "nely": 32,
+    "nodes_x": 97,
+    "nodes_y": 33
+  },
+  "notes": "The NPZ is generated locally and ignored by Git. Tracked manifest and conditions.csv are sufficient to audit the split, schema and exact dataset SHA256.",
+  "physics": {
+    "load_magnitude": 1.0,
+    "plane_stress": true,
+    "poisson": 0.3,
+    "young": 1.0
+  },
+  "quality": {
+    "all_conditions_converged": true,
+    "iteration_max": 324,
+    "iteration_min": 77,
+    "max_relative_residual": 2.3410092347314013e-12,
+    "terminal_compliance_max": 339.35232503875915,
+    "terminal_compliance_min": 166.50938305242065
+  },
+  "runtime_seconds": 1150.238026211,
+  "simp": {
+    "emin_ratio": 1e-09,
+    "max_iterations": 800,
+    "move": 0.2,
+    "penal": 3.0,
+    "rmin_elements": 1.5,
+    "tolerance": 0.01
+  },
+  "snapshots": {
+    "fractions": [
+      0.0,
+      0.05,
+      0.15,
+      0.35,
+      0.65,
+      1.0
+    ],
+    "per_condition": 6,
+    "total_samples": 162
+  },
+  "split": {
+    "condition_counts": {
+      "test": 5,
+      "train": 18,
+      "val": 4
+    },
+    "sample_counts": {
+      "test": 30,
+      "train": 108,
+      "val": 24
+    },
+    "seed": 20260813,
+    "split_is_by_condition": true
+  },
+  "stage": "V04"
+}

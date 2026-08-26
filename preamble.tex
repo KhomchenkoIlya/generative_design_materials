@@ -1,0 +1,435 @@
+% =============================================================================
+% HiddenPower — clean XeLaTeX preamble
+% =============================================================================
+
+% -----------------------------------------------------------------------------
+% Language and fonts
+% -----------------------------------------------------------------------------
+
+\usepackage{fontspec}
+
+\defaultfontfeatures{
+    Ligatures=TeX,
+    Scale=MatchLowercase
+}
+
+\IfFontExistsTF{CMU Serif}{
+    \setmainfont{CMU Serif}
+}{
+    \setmainfont{DejaVu Serif}
+}
+
+\IfFontExistsTF{CMU Sans Serif}{
+    \setsansfont{CMU Sans Serif}
+}{
+    \setsansfont{DejaVu Sans}
+}
+
+\IfFontExistsTF{CMU Typewriter Text}{
+    \setmonofont{CMU Typewriter Text}
+}{
+    \setmonofont{DejaVu Sans Mono}
+}
+
+\usepackage[english,russian]{babel}
+\usepackage{microtype}
+
+% -----------------------------------------------------------------------------
+% Page geometry and typography
+% -----------------------------------------------------------------------------
+
+\usepackage[
+    a4paper,
+    inner=30mm,
+    outer=25mm,
+    top=25mm,
+    bottom=28mm,
+    headheight=16pt,
+    headsep=8mm,
+    footskip=12mm
+]{geometry}
+
+\usepackage{setspace}
+\setstretch{1.05}
+
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2em}
+
+\raggedbottom
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{1}
+
+% -----------------------------------------------------------------------------
+% Core mathematics
+% -----------------------------------------------------------------------------
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+
+\usepackage{bm}
+\usepackage{mathrsfs}
+\usepackage{esint}
+
+\allowdisplaybreaks[2]
+\setlength{\jot}{6pt}
+\numberwithin{equation}{section}
+
+% -----------------------------------------------------------------------------
+% Figures and tables
+% -----------------------------------------------------------------------------
+
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+
+% -----------------------------------------------------------------------------
+% Source code
+% -----------------------------------------------------------------------------
+
+\usepackage{xcolor}
+\usepackage{listings}
+
+\lstdefinestyle{hiddenpower}{
+    basicstyle=\ttfamily\small,
+    numbers=left,
+    numberstyle=\scriptsize,
+    numbersep=8pt,
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    columns=fullflexible
+}
+
+\lstset{style=hiddenpower}
+
+% -----------------------------------------------------------------------------
+% Full-page cover image
+% -----------------------------------------------------------------------------
+
+\usepackage{eso-pic}
+
+\newcommand{\fullpageimage}[1]{%
+    \clearpage
+    \thispagestyle{empty}%
+    \AddToShipoutPictureBG*{%
+        \AtPageLowerLeft{%
+            \includegraphics[
+                width=\paperwidth,
+                height=\paperheight
+            ]{#1}%
+        }%
+    }%
+    \null
+    \clearpage
+}
+
+% -----------------------------------------------------------------------------
+% Theorem system
+% -----------------------------------------------------------------------------
+
+\newtheoremstyle{strictplain}
+    {8pt}
+    {8pt}
+    {\itshape}
+    {}
+    {\bfseries}
+    {.}
+    {0.5em}
+    {}
+
+\newtheoremstyle{strictdefinition}
+    {8pt}
+    {8pt}
+    {\normalfont}
+    {}
+    {\bfseries}
+    {.}
+    {0.5em}
+    {}
+
+\newtheoremstyle{strictremark}
+    {6pt}
+    {6pt}
+    {\normalfont}
+    {}
+    {\itshape}
+    {.}
+    {0.5em}
+    {}
+
+\theoremstyle{strictplain}
+
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{lemma}[theorem]{Лемма}
+\newtheorem{proposition}[theorem]{Предложение}
+\newtheorem{corollary}[theorem]{Следствие}
+\newtheorem{criterion}[theorem]{Критерий}
+\newtheorem{claim}[theorem]{Утверждение}
+
+\theoremstyle{strictdefinition}
+
+\newtheorem{definition}[theorem]{Определение}
+\newtheorem{assumption}[theorem]{Предположение}
+\newtheorem{construction}[theorem]{Конструкция}
+\newtheorem{principle}[theorem]{Принцип}
+\newtheorem{example}[theorem]{Пример}
+\newtheorem{counterexample}[theorem]{Контрпример}
+\newtheorem{problem}[theorem]{Задача}
+\newtheorem{exercise}[theorem]{Упражнение}
+
+\theoremstyle{strictremark}
+
+\newtheorem{remark}[theorem]{Замечание}
+\newtheorem{notation}[theorem]{Обозначение}
+\newtheorem{convention}[theorem]{Соглашение}
+\newtheorem{caution}[theorem]{Предупреждение}
+
+\newtheorem{connection}[theorem]{Связь с другими разделами}
+\newtheorem{mlconnection}[theorem]{Связь с машинным обучением}
+\newtheorem{application}[theorem]{Приложение}
+\newtheorem{computationalnote}[theorem]{Вычислительная реализация}
+
+\newenvironment{derivation}
+    {\begin{proof}[Вывод]}
+    {\end{proof}}
+
+\newenvironment{proofidea}
+    {\begin{proof}[Идея доказательства]}
+    {\end{proof}}
+
+\renewcommand{\proofname}{Доказательство}
+\renewcommand{\qedsymbol}{\(\square\)}
+
+% -----------------------------------------------------------------------------
+% Safe mathematical notation
+% -----------------------------------------------------------------------------
+
+\providecommand{\N}{\mathbb{N}}
+\providecommand{\Z}{\mathbb{Z}}
+\providecommand{\Q}{\mathbb{Q}}
+\providecommand{\R}{\mathbb{R}}
+\providecommand{\C}{\mathbb{C}}
+\providecommand{\F}{\mathbb{F}}
+
+\providecommand{\vct}[1]{\bm{#1}}
+\providecommand{\mat}[1]{\bm{#1}}
+\providecommand{\ten}[1]{\bm{\mathcal{#1}}}
+
+\providecommand{\trans}{\mathsf{T}}
+\providecommand{\adj}{\mathsf{H}}
+
+\providecommand{\dd}{\mathop{}\!\mathrm{d}}
+\providecommand{\given}{\,\mid\,}
+
+\providecommand{\mathbbP}{\mathbb{P}}
+\providecommand{\mathbbE}{\mathbb{E}}
+
+\providecommand{\rankop}{\operatorname{rank}}
+\providecommand{\traceop}{\operatorname{tr}}
+\providecommand{\diagop}{\operatorname{diag}}
+\providecommand{\spanop}{\operatorname{span}}
+\providecommand{\projop}{\operatorname{proj}}
+\providecommand{\kerop}{\operatorname{Ker}}
+\providecommand{\imop}{\operatorname{Im}}
+
+\providecommand{\argmin}{\operatorname*{arg\,min}}
+\providecommand{\argmax}{\operatorname*{arg\,max}}
+
+\providecommand{\grad}{\nabla}
+\providecommand{\laplacian}{\Delta}
+
+\providecommand{\bigO}{\mathcal{O}}
+\providecommand{\littleo}{o}
+
+% -----------------------------------------------------------------------------
+% Delimiters
+% -----------------------------------------------------------------------------
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\paren}{\lparen}{\rparen}
+\DeclarePairedDelimiter{\bracket}{\lbrack}{\rbrack}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\DeclarePairedDelimiterX{\inner}[2]
+    {\langle}{\rangle}
+    {#1,#2}
+
+\DeclarePairedDelimiterX{\setbuild}[2]
+    {\lbrace}{\rbrace}
+    {#1\,\middle|\,#2}
+
+% -----------------------------------------------------------------------------
+% Differential notation
+% -----------------------------------------------------------------------------
+
+\newcommand{\dv}[2]{%
+    \frac{\dd #1}{\dd #2}
+}
+
+\newcommand{\pdv}[2]{%
+    \frac{\partial #1}{\partial #2}
+}
+
+\newcommand{\fdv}[2]{%
+    \frac{\delta #1}{\delta #2}
+}
+
+\newcommand{\Jac}[1]{%
+    \mathrm{J}_{#1}
+}
+
+\newcommand{\Hessian}[1]{%
+    \nabla^{2}#1
+}
+
+% -----------------------------------------------------------------------------
+% Headers
+% -----------------------------------------------------------------------------
+
+\usepackage{fancyhdr}
+\usepackage{emptypage}
+
+\pagestyle{fancy}
+\fancyhf{}
+
+\fancyhead[L]{%
+    \nouppercase{\leftmark}
+}
+
+\fancyhead[R]{%
+    \thepage
+}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\renewcommand{\chaptermark}[1]{%
+    \markboth{\thechapter.\ #1}{}
+}
+
+\renewcommand{\sectionmark}[1]{%
+    \markright{\thesection.\ #1}
+}
+
+% -----------------------------------------------------------------------------
+% Hyperlinks and references
+% Keep this order: hyperref -> bookmark -> cleveref
+% -----------------------------------------------------------------------------
+
+\usepackage{xurl}
+
+\usepackage[
+    unicode=true,
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue,
+    pdfborder={0 0 0}
+]{hyperref}
+
+\usepackage{bookmark}
+
+\usepackage[
+    nameinlink,
+    capitalise,
+    noabbrev
+]{cleveref}
+
+\crefname{theorem}{теорема}{теоремы}
+\crefname{lemma}{лемма}{леммы}
+\crefname{proposition}{предложение}{предложения}
+\crefname{corollary}{следствие}{следствия}
+\crefname{criterion}{критерий}{критерии}
+\crefname{claim}{утверждение}{утверждения}
+
+\crefname{definition}{определение}{определения}
+\crefname{assumption}{предположение}{предположения}
+\crefname{construction}{конструкция}{конструкции}
+\crefname{principle}{принцип}{принципы}
+\crefname{example}{пример}{примеры}
+\crefname{counterexample}{контрпример}{контрпримеры}
+\crefname{problem}{задача}{задачи}
+\crefname{exercise}{упражнение}{упражнения}
+
+\crefname{remark}{замечание}{замечания}
+\crefname{notation}{обозначение}{обозначения}
+\crefname{convention}{соглашение}{соглашения}
+\crefname{caution}{предупреждение}{предупреждения}
+
+\crefname{connection}{связь}{связи}
+\crefname{mlconnection}
+    {связь с машинным обучением}
+    {связи с машинным обучением}
+\crefname{application}{приложение}{приложения}
+\crefname{computationalnote}
+    {вычислительная реализация}
+    {вычислительные реализации}
+
+\crefname{equation}{формула}{формулы}
+\crefname{figure}{рисунок}{рисунки}
+\crefname{table}{таблица}{таблицы}
+
+% BEGIN HIDDENPOWER TOC PAGE NUMBER WIDTH
+% Стандартного поля 1.55em недостаточно для трёхзначных номеров страниц
+% при основном шрифте DejaVu Serif.
+\makeatletter
+\renewcommand{\@pnumwidth}{2.2em}
+\renewcommand{\@tocrmarg}{3.2em}
+\makeatother
+% END HIDDENPOWER TOC PAGE NUMBER WIDTH
+
+% -----------------------------------------------------------------------------
+% Page-break discipline
+% -----------------------------------------------------------------------------
+
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+\interfootnotelinepenalty=10000
+
+% BEGIN HIDDENPOWER TOC NUMBER WIDTH FIX
+% Стандартные поля book.cls слишком узки для номеров вида 1.10 и 1.10.10.
+% Начало текста каждого следующего уровня выровнено по началу текста
+% предыдущего уровня.
+\makeatletter
+\renewcommand*\l@section{%
+    \@dottedtocline{1}{1.5em}{3.6em}%
+}
+\renewcommand*\l@subsection{%
+    \@dottedtocline{2}{5.1em}{4.5em}%
+}
+\renewcommand*\l@subsubsection{%
+    \@dottedtocline{3}{9.6em}{5.2em}%
+}
+\makeatother
+% END HIDDENPOWER TOC NUMBER WIDTH FIX
+
+% BEGIN HIDDENPOWER LIGHT TOC CLEANUP
+% В оглавлении показываются только главы и разделы. Малый кегль и локальная
+% растяжимость строк устраняют Overfull в длинных математических заголовках.
+\makeatletter
+\let\hiddenpoweroriginaltableofcontents\tableofcontents
+\renewcommand{\tableofcontents}{%
+    \begingroup
+    \small
+    \setlength{\emergencystretch}{3em}%
+    \sloppy
+    \hiddenpoweroriginaltableofcontents
+    \endgroup
+}
+\makeatother
+% END HIDDENPOWER LIGHT TOC CLEANUP

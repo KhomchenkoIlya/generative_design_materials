@@ -1,0 +1,110 @@
+{
+  "cantilever_mesh_reevaluation": {
+    "192x64": {
+      "compliance": 239.40926375672376,
+      "relative_residual": 3.4914601302922824e-12,
+      "relative_to_96x32": 0.0250876652094238,
+      "volume_fraction": 0.39999999997875807
+    },
+    "48x16": {
+      "compliance": 254.06133888653218,
+      "relative_residual": 5.354022640255248e-13,
+      "relative_to_96x32": 0.0878240073609566,
+      "volume_fraction": 0.39999999997875807
+    },
+    "96x32": {
+      "compliance": 233.55003857920076,
+      "relative_residual": 1.7794405629000497e-12,
+      "relative_to_96x32": 0.0,
+      "volume_fraction": 0.39999999997875807
+    },
+    "interpretation": "Same optimized physical density is re-evaluated after exact factor-two averaging/prolongation; this checks FEM/discretization sensitivity, not convergence of separately re-optimized designs."
+  },
+  "cases": {
+    "cantilever": {
+      "converged": true,
+      "density_gray_fraction": 0.2662760416666667,
+      "density_max": 1.0,
+      "density_min": 0.0,
+      "energy_identity_error": 1.2818061056706928e-12,
+      "final_change": 0.009611734701605146,
+      "final_compliance": 233.55003857920076,
+      "force_balance_error": 9.059415298680607e-12,
+      "initial_compliance": 1848.074672351774,
+      "iterations": 77,
+      "relative_improvement": 0.8736252154346146,
+      "relative_residual": 1.7794405629000497e-12,
+      "runtime_seconds": 12.440903834998608,
+      "volume_fraction": 0.39999999997875807
+    },
+    "half_mbb": {
+      "converged": true,
+      "density_gray_fraction": 0.23470052083333334,
+      "density_max": 1.0,
+      "density_min": 0.0,
+      "energy_identity_error": 5.723942477236317e-12,
+      "final_change": 0.009674086431613604,
+      "final_compliance": 260.0483446870364,
+      "force_balance_error": 2.2258036924668006e-11,
+      "initial_compliance": 1993.323267330081,
+      "iterations": 222,
+      "relative_improvement": 0.8695403054039733,
+      "relative_residual": 3.407885932389097e-12,
+      "runtime_seconds": 35.56440517700139,
+      "volume_fraction": 0.4000000000200073
+    }
+  },
+  "config": {
+    "emin_ratio": 1e-09,
+    "max_iterations": 250,
+    "move": 0.2,
+    "penal": 3.0,
+    "rmin_elements": 1.5,
+    "tolerance": 0.01,
+    "volume_fraction": 0.4
+  },
+  "gradient_check": {
+    "checks": [
+      {
+        "analytic": -183.11986780330312,
+        "finite_difference": -183.11989515495952,
+        "index": 0.0,
+        "relative_error": 1.493647447547252e-07
+      },
+      {
+        "analytic": -153.7178185624958,
+        "finite_difference": -153.71779795714247,
+        "index": 9.0,
+        "relative_error": 1.3404661563961617e-07
+      },
+      {
+        "analytic": -96.40282079098166,
+        "finite_difference": -96.40282286227375,
+        "index": 18.0,
+        "relative_error": 2.148580327506917e-08
+      },
+      {
+        "analytic": -28.087866562247537,
+        "finite_difference": -28.08781226804058,
+        "index": 28.0,
+        "relative_error": 1.9330128487181556e-06
+      },
+      {
+        "analytic": -9.149172623876247,
+        "finite_difference": -9.149124480245518,
+        "index": 37.0,
+        "relative_error": 5.2620748025465495e-06
+      },
+      {
+        "analytic": -5.005064288862363,
+        "finite_difference": -5.0050243203259015,
+        "index": 47.0,
+        "relative_error": 7.985618996095948e-06
+      }
+    ],
+    "max_relative_error": 7.985618996095948e-06,
+    "seed": 20260813,
+    "step": 1e-06
+  },
+  "stage": "V03"
+}

@@ -1,0 +1,24 @@
+
+# Локальные резервные копии и компактные архивы
+backups/
+*.tar.gz
+*.tgz
+PACK_AUDIT.txt
+*.bak_*
+# Временные отчёты и вспомогательные файлы сборки
+build/*.diff
+build/*_report.txt
+build/*_remaining_important.txt
+build/pass*.console.log
+build/*.aux
+build/*.out
+build/*.fls
+build/*.fdb_latexmk
+build/*.xdv
+build/*.synctex.gz
+
+# chapter10 generated ML datasets — V04
+code/chapter10/data/*.npz
+
+# chapter10 local ML checkpoints — V05
+code/chapter10/checkpoints/*.pt

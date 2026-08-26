@@ -1,0 +1,76 @@
+{
+  "architecture": {
+    "input_channels": 9,
+    "layers": 4,
+    "modes_x": 16,
+    "modes_y": 8,
+    "name": "FNO2d",
+    "output_channels": 2,
+    "padding_x": 6,
+    "padding_y": 6,
+    "real_parameter_count": 1184018,
+    "width": 24
+  },
+  "checkpoint_bytes": 4743905,
+  "checkpoint_sha256": "e3154c0cb697ee3abe8e9e83e7033ab9cf52f17495e98e431deeda17184e1608",
+  "dataset_sha256": "eeace8c3e22dd1ce0d3cb52bc05c021588a948b02e2c74afc84545407f547385",
+  "device": "cpu",
+  "resolution_transfer_192x64": {
+    "compliance_relative_error": 0.2818981163931573,
+    "exact_fem_residual": 4.073585862599649e-12,
+    "field_relative_l2": 0.35947471857070923,
+    "interpretation": "Exploratory zero-shot evaluation of the same trained spectral operator on a 192x64 element mesh. No fine-resolution sample is used for training.",
+    "physics_residual": 320.4841989705232,
+    "source_condition_id": 4,
+    "source_sample_index": 29
+  },
+  "seed": 20260814,
+  "stage": "V05",
+  "test": {
+    "compliance_relative_error": {
+      "max": 0.22390337055602813,
+      "mean": 0.08825170565614689,
+      "median": 0.07325000657690084,
+      "p90": 0.2088091412048627
+    },
+    "field_relative_l2": {
+      "max": 0.1059703603386879,
+      "mean": 0.04514723227669795,
+      "median": 0.03680270351469517,
+      "p90": 0.09193998947739603
+    },
+    "figure_condition_id": 10,
+    "figure_sample_index": 60,
+    "figure_snapshot_rank": 0,
+    "max_fixed_boundary_abs_displacement": 0.0,
+    "physics_residual": {
+      "max": 135.42674728405186,
+      "mean": 67.86202596168006,
+      "median": 64.50223294399429,
+      "p90": 86.35130994391878
+    }
+  },
+  "timing": {
+    "fem_over_fno_ratio": 5.269489675236781,
+    "note": "CPU wall-clock microbenchmark on one 96x32 sample; not a hardware-independent complexity result.",
+    "single_sample_fem_ms": 171.53609600003014,
+    "single_sample_fno_ms": 32.55269609999232
+  },
+  "torch_version": "2.13.0+cpu",
+  "training": {
+    "batch_size": 8,
+    "best_epoch": 160,
+    "best_val_relative_l2_scaled": 0.08409757167100906,
+    "early_stopping_patience": 45,
+    "epochs_run": 205,
+    "initial_learning_rate": 0.001,
+    "max_epochs": 350,
+    "normalization_from_train_only": true,
+    "optimizer": "AdamW",
+    "test_samples": 30,
+    "train_samples": 108,
+    "training_seconds": 1468.8378810590002,
+    "val_samples": 24,
+    "weight_decay": 0.0001
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "git_head_before_v09": "a718fe307be0ef77da0219b6997c2ddf0a908489",
+  "local_ignored_artifact_bytes": {
+    "v04_operator_dataset.npz": 5598791,
+    "v05_fno.pt": 4743905,
+    "v07_diffusion.pt": 3218249,
+    "v07_diffusion_candidates.npz": 396369,
+    "v08_refined_candidates.npz": 271044
+  },
+  "local_ignored_artifact_sha256": {
+    "v04_operator_dataset.npz": "eeace8c3e22dd1ce0d3cb52bc05c021588a948b02e2c74afc84545407f547385",
+    "v05_fno.pt": "e3154c0cb697ee3abe8e9e83e7033ab9cf52f17495e98e431deeda17184e1608",
+    "v07_diffusion.pt": "230fb0cab132f6829201c6b3eb8708f5074ccc913ce792e89d55256d7c982345",
+    "v07_diffusion_candidates.npz": "56a7f7167e82528d823b044164d548312253470ee8221a3d9368d3994027e3cf",
+    "v08_refined_candidates.npz": "f81690e4c34d10402641cac3074fa11d1da6434478ef3d1e409109029c75467a"
+  },
+  "reproduction_contract": "Tracked code/results plus the recorded SHA256 values identify the local dataset/checkpoints/candidate arrays used by V09. The final CLOSE step may archive the project once.",
+  "stage": "V09",
+  "tracked_result_sha256": {
+    "v03_topopt.json": "190f03633ab8709d289fc0731207a8160d02dfc18b2fa8a4a8633de158f6eda7",
+    "v05_fno_results.json": "6744c79fd56bc8a5c9d7e7a435dd014fd0cda334f932cf37f9a3b15acc2999b7",
+    "v06_fno_analysis.json": "cc9ae1e70d9a315ae6052ce3296d55971494ee7175d852fbeb12fc219ac676a3",
+    "v07_diffusion_results.json": "fbeef5a8e2167de97f466a1631ecb87606823bc0cec3cd4e3e7e89de4691564a",
+    "v08_diffusion_refinement.json": "68b18dd3ba548f2a8457ba9c78d97bb821f9cac449b2883616b3c18f507f03dc"
+  }
+}
